@@ -83,8 +83,10 @@
   .badge.Сложно{ background:rgba(181,69,61,0.15); color:var(--red); }
   .empty-state{ text-align:center; padding:70px 20px; color:var(--ink-soft); }
   .empty-state h3{ font-family:'Fraunces',serif; font-size:21px; color:var(--ink); margin-bottom:8px; }
-  .overlay{ position:fixed; inset:0; background:rgba(43,37,25,0.45); display:none; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) 16px 40px; overflow-y:auto; z-index:50; }
-  .overlay.open{ display:flex; }
+  .overlay{ position:fixed; inset:0; background:rgba(43,37,25,0.45); display:flex; align-items:flex-start; justify-content:center; padding:calc(40px + env(safe-area-inset-top)) 16px 40px; overflow-y:auto; z-index:50; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease; }
+  .overlay.open{ opacity:1; visibility:visible; pointer-events:auto; }
+  .overlay .modal{ transform:translateY(10px); transition:transform .2s ease; }
+  .overlay.open .modal{ transform:translateY(0); }
   #lightboxOverlay.open{ align-items:center; }
   .modal{ background:var(--card); width:100%; max-width:680px; border-radius:6px; padding:30px 32px 28px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
   .modal-close{ position:absolute; top:16px; right:18px; background:none; border:none; cursor:pointer; font-size:20px; color:var(--ink-soft); line-height:1; z-index:2; }
@@ -135,8 +137,8 @@
   .setup-banner{ background:#5C2222; color:#F5EEDD; padding:14px 20px; font-size:13px; line-height:1.5; }
   .setup-banner a{ color:#F0C77A; }
 
-  .cook-overlay{ position:fixed; inset:0; background:var(--paper); z-index:100; display:none; flex-direction:column; }
-  .cook-overlay.open{ display:flex; }
+  .cook-overlay{ position:fixed; inset:0; background:var(--paper); z-index:100; display:flex; flex-direction:column; opacity:0; visibility:hidden; pointer-events:none; transform:translateY(14px); transition:opacity .2s ease, transform .2s ease, visibility .2s; }
+  .cook-overlay.open{ opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); }
   .cook-header{ display:flex; align-items:center; justify-content:space-between; padding:calc(16px + env(safe-area-inset-top)) 22px 16px; border-bottom:2px solid var(--line); flex-shrink:0; }
   .cook-title{ font-family:'Fraunces',serif; font-weight:700; font-size:17px; color:var(--ink); }
   .cook-close{ background:none; border:none; font-size:24px; color:var(--ink-soft); cursor:pointer; }
@@ -190,6 +192,7 @@
     .cook-timer-display.ringing{ animation:none; }
     .recipe-card{ transition:none; }
     .cook-step{ animation:none; }
+    .overlay, .overlay .modal, .cook-overlay{ transition:none !important; }
   }
 
   .toast-container{ position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
@@ -213,6 +216,8 @@
   .bottom-nav button.active .bn-icon{ transform:translateY(-1px) scale(1.08); }
   .bottom-nav button.active::before{ content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:28px; height:3px; background:var(--burgundy); border-radius:0 0 3px 3px; }
   .bottom-nav .bn-badge{ position:absolute; top:4px; right:calc(50% - 22px); background:var(--mustard); color:#fff; font-size:9px; font-weight:800; min-width:15px; height:15px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
+
+  .overlay.tab-page, .cook-overlay.tab-page{ bottom:calc(60px + env(safe-area-inset-bottom)); z-index:30; }
 
   .photo-gallery{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:18px; }
   .photo-thumb{ width:84px; height:84px; border-radius:6px; object-fit:cover; flex-shrink:0; cursor:pointer; border:1px solid var(--line); transition:transform .12s; }
@@ -375,7 +380,7 @@
   </div>
 </div>
 
-<div class="overlay" id="shopOverlay">
+<div class="overlay tab-page" id="shopOverlay">
   <div class="modal" style="max-width:480px;">
     <button class="modal-close" id="shopCloseBtn">&times;</button>
     <p class="form-title">🛒 Список покупок</p>
@@ -396,7 +401,7 @@
   <button id="lightboxNext" class="lightbox-nav next">›</button>
 </div>
 
-<div class="cook-overlay" id="galleryOverlay">
+<div class="cook-overlay tab-page" id="galleryOverlay">
   <div class="cook-header">
     <span class="cook-title">🖼️ Галерея блюд</span>
     <button class="cook-close" id="galleryCloseBtn">&times;</button>
@@ -407,7 +412,7 @@
   </div>
 </div>
 
-<div class="cook-overlay" id="reviewsFeedOverlay">
+<div class="cook-overlay tab-page" id="reviewsFeedOverlay">
   <div class="cook-header">
     <span class="cook-title">⭐ Все отзывы</span>
     <button class="cook-close" id="reviewsFeedCloseBtn">&times;</button>
@@ -418,7 +423,7 @@
   </div>
 </div>
 
-<div class="cook-overlay" id="referenceOverlay">
+<div class="cook-overlay tab-page" id="referenceOverlay">
   <div class="cook-header">
     <span class="cook-title">📖 Кулинарный справочник</span>
     <button class="cook-close" id="referenceCloseBtn">&times;</button>
@@ -815,6 +820,7 @@ function getFilteredList(){
 
 let shopMode = false;
 let selectedForShop = new Set(JSON.parse(localStorage.getItem('shopCart') || '[]'));
+let shopCheckedItems = new Set(JSON.parse(localStorage.getItem('shopChecked') || '[]'));
 let hasLoadedOnce = false;
 function persistShopCart(){ localStorage.setItem('shopCart', JSON.stringify(Array.from(selectedForShop))); updateShopBadge(); }
 persistShopCart();
@@ -912,22 +918,39 @@ function openShoppingList(){
       else if(i.qty===null) merged[key].qty = null;
     });
   });
-  const items = Object.values(merged).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
-  document.getElementById('shopListSubtitle').textContent = `${chosen.length} ${chosen.length===1?'рецепт':'рецепта(ов)'} · ${items.length} позиций`;
+  const items = Object.values(merged).sort((a,b)=>{
+    const ak = a.name.toLowerCase().trim()+'|'+(a.unit||''), bk = b.name.toLowerCase().trim()+'|'+(b.unit||'');
+    const ac = shopCheckedItems.has(ak), bc = shopCheckedItems.has(bk);
+    if(ac!==bc) return ac ? 1 : -1;
+    return a.name.localeCompare(b.name,'ru');
+  });
+  const checkedCount = items.filter(i=> shopCheckedItems.has(i.name.toLowerCase().trim()+'|'+(i.unit||''))).length;
+  document.getElementById('shopListSubtitle').textContent = `${chosen.length} ${chosen.length===1?'рецепт':'рецепта(ов)'} · ${checkedCount}/${items.length} взято`;
   document.getElementById('shopList').innerHTML = items.map(i=>{
+    const key = i.name.toLowerCase().trim()+'|'+(i.unit||'');
     const amt = (i.qty!==null && i.qty!==undefined) ? `${fmtQty(i.qty)} ${i.unit||''}`.trim() : (i.unit||'');
-    return `<li><span>${escapeHtml(i.name)}</span><span class="amt">${escapeHtml(amt)}</span></li>`;
+    return `<li data-key="${escapeHtml(key)}" class="${shopCheckedItems.has(key)?'checked':''}"><span>${escapeHtml(i.name)}</span><span class="amt">${escapeHtml(amt)}</span></li>`;
   }).join('') || '<li style="border:none; color:var(--ink-soft);">Список пуст — выбери рецепты</li>';
+  document.querySelectorAll('#shopList li[data-key]').forEach(li=>{
+    li.addEventListener('click', ()=>{
+      const key = li.dataset.key;
+      if(shopCheckedItems.has(key)) shopCheckedItems.delete(key); else shopCheckedItems.add(key);
+      localStorage.setItem('shopChecked', JSON.stringify(Array.from(shopCheckedItems)));
+      openShoppingList();
+    });
+  });
   document.getElementById('shopOverlay').classList.add('open');
   document.getElementById('shopCopyBtn').onclick = ()=>{
     const text = items.map(i=>{
+      const key = i.name.toLowerCase().trim()+'|'+(i.unit||'');
       const amt = (i.qty!==null && i.qty!==undefined) ? `${fmtQty(i.qty)} ${i.unit||''}`.trim() : (i.unit||'');
-      return `- ${i.name}${amt?` — ${amt}`:''}`;
+      return `${shopCheckedItems.has(key)?'[x]':'[ ]'} ${i.name}${amt?` — ${amt}`:''}`;
     }).join('\n');
     navigator.clipboard?.writeText('Список покупок:\n'+text).then(()=> showToast('Список скопирован — можно вставить в заметки телефона'));
   };
   document.getElementById('shopClearBtn').onclick = ()=>{
     selectedForShop.clear(); persistShopCart(); shopMode = false;
+    shopCheckedItems.clear(); localStorage.removeItem('shopChecked');
     document.getElementById('shopOverlay').classList.remove('open');
     setBottomTab('recipes');
     render(); showToast('Список покупок очищен');
