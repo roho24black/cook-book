@@ -63,6 +63,8 @@
   .card-banner{ height:64px; display:flex; align-items:center; justify-content:center; font-size:30px; position:relative; }
   .card-banner .fav-btn{ position:absolute; top:8px; right:10px; font-size:18px; color:rgba(255,255,255,0.75); }
   .card-banner .fav-btn.active{ color:#FFD98A; }
+  .card-banner .queue-btn{ position:absolute; top:8px; right:34px; font-size:16px; background:none; border:none; cursor:pointer; padding:0; line-height:1; filter:grayscale(1) brightness(2); opacity:.6; }
+  .card-banner .queue-btn.active{ filter:none; opacity:1; }
   .card-banner .select-check{ position:absolute; top:8px; left:10px; width:20px; height:20px; border-radius:5px; border:2px solid rgba(255,255,255,0.8); background:rgba(0,0,0,0.15); display:none; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; }
   .recipe-card.select-mode .card-banner .select-check{ display:flex; }
   .recipe-card.selected .card-banner .select-check{ background:var(--mustard); border-color:var(--mustard); }
@@ -204,8 +206,8 @@
   .scroll-top-btn.show{ display:flex; }
 
   .bottom-nav{ position:fixed; left:0; right:0; bottom:0; height:calc(60px + env(safe-area-inset-bottom)); background:var(--card); border-top:2px solid var(--line); display:flex; z-index:35; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -4px 14px rgba(43,37,25,0.08); }
-  .bottom-nav button{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:10.5px; font-weight:700; position:relative; padding:0 4px; min-width:0; }
-  .bottom-nav button .bn-icon{ font-size:20px; line-height:1; transition:transform .12s; }
+  .bottom-nav button{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:9.5px; font-weight:700; position:relative; padding:0 2px; min-width:0; }
+  .bottom-nav button .bn-icon{ font-size:18px; line-height:1; transition:transform .12s; }
   .bottom-nav button span:not(.bn-icon):not(.bn-badge){ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .bottom-nav button.active{ color:var(--burgundy-dark); }
   .bottom-nav button.active .bn-icon{ transform:translateY(-1px) scale(1.08); }
@@ -241,6 +243,15 @@
   .ref-table tr.ref-highlight td{ background:rgba(198,138,46,0.12); font-weight:600; }
   .ref-note{ font-size:12px; color:var(--ink-soft); margin:8px 0 0; font-style:italic; }
   @media (max-width:720px){ .ref-table{ font-size:12px; } .ref-table th, .ref-table td{ padding:8px 8px; } }
+
+  .photo-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:10px; }
+  .photo-grid-item{ position:relative; border-radius:8px; overflow:hidden; cursor:pointer; aspect-ratio:1; }
+  .photo-grid-item img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .15s; }
+  .photo-grid-item:hover img{ transform:scale(1.06); }
+  .photo-grid-caption{ position:absolute; left:0; right:0; bottom:0; background:linear-gradient(transparent, rgba(0,0,0,0.7)); color:#fff; font-size:11px; font-weight:600; padding:16px 8px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .feed-review-item{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; cursor:pointer; }
+  .feed-review-item:hover{ border-color:var(--sage); }
+  .feed-review-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--ink); margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -257,6 +268,7 @@
     <div class="quick-actions">
       <button class="qa-btn" id="randomBtn">🎲 Что приготовить?</button>
       <button class="qa-btn" id="favToggleSidebar">⭐ Избранное</button>
+      <button class="qa-btn" id="queueToggleSidebar">📌 Буду готовить</button>
       <button class="qa-btn" id="shopModeBtn">🛒 Список покупок</button>
       <button class="qa-btn" id="referenceBtn">📖 Справочник</button>
     </div>
@@ -348,6 +360,8 @@
 <nav class="bottom-nav" id="bottomNav">
   <button data-tab="recipes" class="active"><span class="bn-icon">🍳</span><span>Рецепты</span></button>
   <button data-tab="reference"><span class="bn-icon">📖</span><span>Справочник</span></button>
+  <button data-tab="gallery"><span class="bn-icon">🖼️</span><span>Галерея</span></button>
+  <button data-tab="reviews"><span class="bn-icon">⭐</span><span>Отзывы</span></button>
   <button data-tab="shopping"><span class="bn-icon">🛒</span><span>Покупки</span><span class="bn-badge" id="bnShopBadge" style="display:none;"></span></button>
 </nav>
 
@@ -380,6 +394,28 @@
   <button id="lightboxPrev" class="lightbox-nav prev">‹</button>
   <img id="lightboxImg" src="" style="max-width:90vw; max-height:85vh; margin:auto; display:block; border-radius:6px; align-self:center;">
   <button id="lightboxNext" class="lightbox-nav next">›</button>
+</div>
+
+<div class="cook-overlay" id="galleryOverlay">
+  <div class="cook-header">
+    <span class="cook-title">🖼️ Галерея блюд</span>
+    <button class="cook-close" id="galleryCloseBtn">&times;</button>
+  </div>
+  <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:900px; margin:0 auto; width:100%; padding:24px 20px 60px;">
+    <div class="photo-grid" id="photoGrid"></div>
+    <p id="galleryEmpty" style="display:none; text-align:center; color:var(--ink-soft); padding:60px 20px; font-size:14px;">Фото пока нет — открой рецепт и добавь снимок готового блюда 📷</p>
+  </div>
+</div>
+
+<div class="cook-overlay" id="reviewsFeedOverlay">
+  <div class="cook-header">
+    <span class="cook-title">⭐ Все отзывы</span>
+    <button class="cook-close" id="reviewsFeedCloseBtn">&times;</button>
+  </div>
+  <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:640px; margin:0 auto; width:100%; padding:24px 20px 60px;">
+    <div id="reviewsFeedList"></div>
+    <p id="reviewsFeedEmpty" style="display:none; text-align:center; color:var(--ink-soft); padding:60px 20px; font-size:14px;">Отзывов пока нет — приготовь что-нибудь и поделись впечатлением! ⭐</p>
+  </div>
 </div>
 
 <div class="cook-overlay" id="referenceOverlay">
@@ -453,7 +489,7 @@ import { seedRecipesV2 } from './recipes-seed-v2.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import {
-  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, setDoc, writeBatch,
+  getFirestore, collection, collectionGroup, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, setDoc, writeBatch,
   onSnapshot, query, orderBy, enableIndexedDbPersistence, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import {
@@ -506,6 +542,7 @@ let editingId = null;
 let searchQuery = '';
 let activeDifficulty = null;
 let favOnly = false;
+let queueOnly = false;
 let sortMode = 'new';
 
 const catList = document.getElementById('catList');
@@ -611,6 +648,11 @@ document.getElementById('favToggleSidebar').addEventListener('click', ()=>{
   document.getElementById('favToggleSidebar').classList.toggle('active', favOnly);
   render();
 });
+document.getElementById('queueToggleSidebar').addEventListener('click', ()=>{
+  queueOnly = !queueOnly;
+  document.getElementById('queueToggleSidebar').classList.toggle('active', queueOnly);
+  render();
+});
 document.getElementById('randomBtn').addEventListener('click', ()=>{
   const list = getFilteredList();
   if(list.length===0) return;
@@ -624,17 +666,39 @@ function setBottomTab(tab){
 }
 function openReferenceTab(){
   document.getElementById('shopOverlay').classList.remove('open');
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.remove('open');
   document.getElementById('referenceOverlay').classList.add('open');
   setBottomTab('reference');
 }
 function openShoppingTab(){
   document.getElementById('referenceOverlay').classList.remove('open');
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.remove('open');
   openShoppingList();
   setBottomTab('shopping');
+}
+function openGalleryTab(){
+  document.getElementById('referenceOverlay').classList.remove('open');
+  document.getElementById('shopOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.remove('open');
+  renderGallery();
+  document.getElementById('galleryOverlay').classList.add('open');
+  setBottomTab('gallery');
+}
+function openReviewsFeedTab(){
+  document.getElementById('referenceOverlay').classList.remove('open');
+  document.getElementById('shopOverlay').classList.remove('open');
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.add('open');
+  setBottomTab('reviews');
+  loadReviewsFeed();
 }
 function goToRecipesTab(){
   document.getElementById('referenceOverlay').classList.remove('open');
   document.getElementById('shopOverlay').classList.remove('open');
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.remove('open');
   closeDetail();
   setBottomTab('recipes');
 }
@@ -644,8 +708,64 @@ document.querySelectorAll('.bottom-nav button').forEach(btn=>{
     if(tab==='recipes') goToRecipesTab();
     else if(tab==='reference') openReferenceTab();
     else if(tab==='shopping') openShoppingTab();
+    else if(tab==='gallery') openGalleryTab();
+    else if(tab==='reviews') openReviewsFeedTab();
   });
 });
+document.getElementById('galleryCloseBtn').addEventListener('click', ()=>{ document.getElementById('galleryOverlay').classList.remove('open'); setBottomTab('recipes'); });
+document.getElementById('reviewsFeedCloseBtn').addEventListener('click', ()=>{ document.getElementById('reviewsFeedOverlay').classList.remove('open'); setBottomTab('recipes'); });
+
+function renderGallery(){
+  const items = [];
+  recipes.forEach(r=>{ (r.photos||[]).forEach(url=> items.push({ url, recipeId:r.id, title:r.title })); });
+  const grid = document.getElementById('photoGrid');
+  const empty = document.getElementById('galleryEmpty');
+  if(items.length===0){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = items.map(it=>`
+    <div class="photo-grid-item" data-recipe-id="${it.recipeId}">
+      <img src="${it.url}" loading="lazy">
+      <div class="photo-grid-caption">${escapeHtml(it.title)}</div>
+    </div>`).join('');
+  grid.querySelectorAll('.photo-grid-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      document.getElementById('galleryOverlay').classList.remove('open');
+      openDetail(el.dataset.recipeId);
+    });
+  });
+}
+
+async function loadReviewsFeed(){
+  const list = document.getElementById('reviewsFeedList');
+  const empty = document.getElementById('reviewsFeedEmpty');
+  list.innerHTML = `<p style="text-align:center; color:var(--ink-soft); font-size:13px;">Загрузка…</p>`;
+  empty.style.display = 'none';
+  try{
+    const snap = await getDocs(collectionGroup(db, 'reviews'));
+    const items = snap.docs.map(d=>{
+      const recipeId = d.ref.parent.parent ? d.ref.parent.parent.id : null;
+      const recipe = recipes.find(r=>r.id===recipeId);
+      return { ...d.data(), recipeId, recipeTitle: recipe ? recipe.title : 'Рецепт' };
+    }).sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
+    if(items.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+    list.innerHTML = items.map(rv=>`
+      <div class="feed-review-item" data-recipe-id="${rv.recipeId||''}">
+        <div class="feed-review-title">${escapeHtml(rv.recipeTitle)}</div>
+        <div class="review-stars">${'★'.repeat(rv.rating||0)}${'☆'.repeat(5-(rv.rating||0))}<span class="review-date">${rv.createdAt ? new Date(rv.createdAt).toLocaleDateString('ru-RU') : ''}</span></div>
+        ${rv.text ? `<div class="review-text">${escapeHtml(rv.text)}</div>` : ''}
+      </div>`).join('');
+    list.querySelectorAll('.feed-review-item').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        if(!el.dataset.recipeId) return;
+        document.getElementById('reviewsFeedOverlay').classList.remove('open');
+        openDetail(el.dataset.recipeId);
+      });
+    });
+  }catch(e){
+    console.error(e);
+    list.innerHTML = `<p style="text-align:center; color:var(--ink-soft); font-size:13px;">Не удалось загрузить отзывы</p>`;
+  }
+}
 function updateShopBadge(){
   const badge = document.getElementById('bnShopBadge');
   if(selectedForShop.size>0){ badge.style.display='flex'; badge.textContent = selectedForShop.size; }
@@ -655,6 +775,8 @@ function updateShopBadge(){
 document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape'){
     if(document.getElementById('lightboxOverlay').classList.contains('open')) closeLightbox();
+    else if(document.getElementById('galleryOverlay').classList.contains('open')) document.getElementById('galleryCloseBtn').click();
+    else if(document.getElementById('reviewsFeedOverlay').classList.contains('open')) document.getElementById('reviewsFeedCloseBtn').click();
     else if(document.getElementById('referenceOverlay').classList.contains('open')) document.getElementById('referenceCloseBtn').click();
     else if(document.getElementById('cookOverlay').classList.contains('open')) stopCookMode();
     else if(document.getElementById('confirmOverlay').classList.contains('open')) document.getElementById('confirmCancelBtn').click();
@@ -678,6 +800,7 @@ function getFilteredList(){
   let list = recipes.filter(r => activeCategory==='Все' || (r.category||'Без категории')===activeCategory);
   if(activeDifficulty) list = list.filter(r => (r.difficulty||'Легко') === activeDifficulty);
   if(favOnly) list = list.filter(r => r.favorite);
+  if(queueOnly) list = list.filter(r => r.willCook);
   if(searchQuery){
     const q = searchQuery.toLowerCase();
     list = list.filter(r => r.title.toLowerCase().includes(q) || (r.ingredients||[]).some(i => (i.name||'').toLowerCase().includes(q)));
@@ -699,9 +822,10 @@ persistShopCart();
 function render(){
   renderCategories();
   document.getElementById('favToggleSidebar').classList.toggle('active', favOnly);
+  document.getElementById('queueToggleSidebar').classList.toggle('active', queueOnly);
   document.getElementById('shopModeBtn').classList.toggle('active', shopMode);
   document.getElementById('shopModeBtn').textContent = `🛒 Список покупок${selectedForShop.size?` (${selectedForShop.size})`:''}`;
-  viewTitle.textContent = favOnly ? '⭐ Избранное' : (activeCategory === 'Все' ? 'Все рецепты' : activeCategory);
+  viewTitle.textContent = favOnly ? '⭐ Избранное' : (queueOnly ? '📌 Буду готовить' : (activeCategory === 'Все' ? 'Все рецепты' : activeCategory));
   const list = getFilteredList();
 
   if(!hasLoadedOnce){
@@ -718,7 +842,10 @@ function render(){
       <div class="card-banner" style="background:${CATEGORY_GRADIENT[r.category]||CATEGORY_GRADIENT['Без категории']}">
         ${CATEGORY_EMOJI[r.category]||'🍽️'}
         <div class="select-check">${selectedForShop.has(r.id)?'✓':''}</div>
-        ${!shopMode ? `<button class="fav-btn ${r.favorite?'active':''}" data-favid="${r.id}">${r.favorite?'★':'☆'}</button>` : ''}
+        ${!shopMode ? `
+          <button class="queue-btn ${r.willCook?'active':''}" data-queueid="${r.id}" title="Буду готовить">📌</button>
+          <button class="fav-btn ${r.favorite?'active':''}" data-favid="${r.id}">${r.favorite?'★':'☆'}</button>
+        ` : ''}
       </div>
       <div class="card-content">
         <div class="card-top"><div class="card-cat">${escapeHtml(r.category || 'Без категории')}</div></div>
@@ -740,8 +867,18 @@ function render(){
         render();
         return;
       }
-      if(e.target.closest('.fav-btn')) return;
+      if(e.target.closest('.fav-btn') || e.target.closest('.queue-btn')) return;
       openDetail(el.dataset.id);
+    });
+  });
+  grid.querySelectorAll('.queue-btn').forEach(el=>{
+    el.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const r = recipes.find(x=>x.id===el.dataset.queueid);
+      r.willCook = !r.willCook;
+      el.classList.toggle('active', r.willCook);
+      try { await updateDoc(doc(db,'recipes',r.id), { willCook: r.willCook }); }
+      catch(e){ r.willCook = !r.willCook; render(); }
     });
   });
   grid.querySelectorAll('.fav-btn').forEach(el=>{
@@ -863,6 +1000,8 @@ function openDetail(id){
   checkedIngredients = new Set();
   document.getElementById('referenceOverlay').classList.remove('open');
   document.getElementById('shopOverlay').classList.remove('open');
+  document.getElementById('galleryOverlay').classList.remove('open');
+  document.getElementById('reviewsFeedOverlay').classList.remove('open');
   setBottomTab('recipes');
   renderDetail(r);
   document.getElementById('detailOverlay').classList.add('open');
@@ -908,6 +1047,7 @@ function renderDetail(r){
       <button class="btn" id="shopAddBtn">${selectedForShop.has(r.id)?'✓ В списке покупок':'🛒 В список покупок'}</button>
       <button class="btn" id="shareBtn">📋 Скопировать</button>
       <button class="btn" id="favDetailBtn">${r.favorite?'★ В избранном':'☆ В избранное'}</button>
+      <button class="btn" id="queueDetailBtn">${r.willCook?'📌 В планах':'🗓️ Буду готовить'}</button>
       <button class="btn" id="editBtn">Изменить</button>
       <button class="btn btn-danger" id="deleteBtn">Удалить</button>
     </div>
@@ -940,6 +1080,13 @@ function renderDetail(r){
     renderDetail(r);
     try { await updateDoc(doc(db,'recipes',r.id), { favorite: r.favorite }); }
     catch(e){ r.favorite = !r.favorite; renderDetail(r); }
+  });
+  document.getElementById('queueDetailBtn').addEventListener('click', async ()=>{
+    r.willCook = !r.willCook;
+    renderDetail(r);
+    showToast(r.willCook ? 'Добавлено в «Буду готовить»' : 'Убрано из «Буду готовить»');
+    try { await updateDoc(doc(db,'recipes',r.id), { willCook: r.willCook }); }
+    catch(e){ r.willCook = !r.willCook; renderDetail(r); }
   });
   document.getElementById('shareBtn').addEventListener('click', ()=> copyRecipeText(r));
   document.getElementById('shopAddBtn').addEventListener('click', (e)=>{
