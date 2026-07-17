@@ -1,0 +1,14 @@
+// Скопируй это в Firebase Console → Firestore Database → Rules → и нажми "Publish"
+//
+// Логика: читать/писать может только тот, кто прошёл анонимную авторизацию
+// (это происходит автоматически при открытии сайта — см. index.html).
+// Открытым текстом ссылку на сайт лучше никому не давать, это единственная защита.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /recipes/{recipeId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
