@@ -1,9 +1,10 @@
-const CACHE_NAME = 'cookbook-v2';
+const CACHE_NAME = 'cookbook-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './recipes-seed.js',
+  './recipes-seed-v2.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];

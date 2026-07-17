@@ -1,0 +1,15 @@
+// Эти правила — для Firebase Storage (фотографии блюд), это ОТДЕЛЬНЫЙ продукт от Firestore Database.
+//
+// Как включить (если ещё не включал):
+// 1. Firebase Console → в левом меню найди "Storage" (Build → Storage) → "Get started"
+// 2. Выбери "Start in production mode" → выбери регион (любой, ближе к тебе) → Done
+// 3. Перейди на вкладку "Rules" внутри Storage → замени весь текст на этот → Publish
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
