@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Книга рецептов</title>
+
+<!-- PWA / iOS install support -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7A2E2E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Рецепты">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F0E7D4; --paper-shadow:#D9C9A0; --ink:#2B2519; --ink-soft:#5C5342;
+    --burgundy:#7A2E2E; --burgundy-dark:#5C2222; --sage:#586B4D; --mustard:#C68A2E;
+    --card:#FBF6EA; --line:#D9CBA6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper);
+    background-image:radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0);
+    background-size:18px 18px; color:var(--ink); font-family:'Inter',sans-serif;
+    min-height:100vh; min-height:100dvh;
+    padding-top:env(safe-area-inset-top);
+  }
+  .app{ display:flex; min-height:100vh; min-height:100dvh; }
+  .sidebar{ width:220px; flex-shrink:0; padding:28px 0 28px 20px; border-right:2px solid var(--line); }
+  .brand{ font-family:'Fraunces',serif; font-weight:700; font-size:26px; color:var(--burgundy-dark); margin:0 20px 4px 0; line-height:1.1; }
+  .brand-sub{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin:0 20px 8px 0; }
+  .sync-status{ font-size:10.5px; color:var(--sage); margin:0 20px 20px 0; display:flex; align-items:center; gap:5px; }
+  .sync-dot{ width:6px;height:6px;border-radius:50%; background:var(--sage); }
+  .sync-dot.offline{ background:var(--mustard); }
+  .cat-list{ list-style:none; margin:0; padding:0; }
+  .cat-tab{ display:flex; align-items:center; gap:8px; padding:9px 14px 9px 12px; margin-bottom:6px; border-radius:6px 0 0 6px; cursor:pointer; font-size:14px; color:var(--ink-soft); border-right:4px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+  .cat-tab:hover{ background:rgba(122,46,46,0.06); color:var(--ink); }
+  .cat-tab.active{ background:var(--card); color:var(--burgundy-dark); font-weight:600; border-right-color:var(--mustard); box-shadow:-2px 2px 6px rgba(0,0,0,0.04); }
+  .cat-dot{ width:8px;height:8px;border-radius:50%; background:var(--sage); flex-shrink:0; }
+  .cat-count{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); opacity:.7; }
+  .add-btn{ margin:24px 20px 0 0; width:calc(100% - 20px); padding:11px 14px; background:var(--burgundy); color:#F5EEDD; border:none; border-radius:6px; font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; transition:background .15s, transform .1s; }
+  .add-btn:hover{ background:var(--burgundy-dark); }
+  .add-btn:active{ transform:scale(0.98); }
+  .main{ flex:1; padding:32px 40px 60px; max-width:1100px; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:28px; flex-wrap:wrap; }
+  .view-title{ font-family:'Fraunces',serif; font-weight:600; font-size:28px; margin:0; color:var(--ink); }
+  .search-wrap{ position:relative; }
+  .search-wrap input{ width:260px; padding:9px 14px 9px 34px; border:1.5px solid var(--line); border-radius:20px; background:var(--card); font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); outline:none; }
+  .search-wrap input:focus{ border-color:var(--sage); }
+  .search-wrap svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.5; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:20px; }
+  .recipe-card{ background:var(--card); border-radius:3px; padding:18px 18px 16px; cursor:pointer; position:relative; border:1px solid var(--line); box-shadow:0 2px 0 var(--paper-shadow), 0 4px 10px rgba(43,37,25,0.06); transition:transform .15s ease, box-shadow .15s ease; }
+  .recipe-card::before{ content:""; position:absolute; top:0; left:22px; width:34px; height:10px; background:var(--mustard); opacity:.85; border-radius:0 0 3px 3px; }
+  .recipe-card:hover{ transform:translateY(-3px) rotate(-0.4deg); box-shadow:0 3px 0 var(--paper-shadow), 0 10px 18px rgba(43,37,25,0.12); }
+  .card-cat{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--sage); margin:10px 0 6px; }
+  .card-title{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; line-height:1.25; margin:0 0 10px; color:var(--ink); }
+  .card-meta{ display:flex; gap:12px; font-size:12px; color:var(--ink-soft); border-top:1px dashed var(--line); padding-top:10px; }
+  .empty-state{ text-align:center; padding:80px 20px; color:var(--ink-soft); }
+  .empty-state h3{ font-family:'Fraunces',serif; font-size:22px; color:var(--ink); margin-bottom:8px; }
+  .overlay{ position:fixed; inset:0; background:rgba(43,37,25,0.45); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50; }
+  .overlay.open{ display:flex; }
+  .modal{ background:var(--card); width:100%; max-width:640px; border-radius:6px; padding:32px 34px 30px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.25); }
+  .modal-close{ position:absolute; top:16px; right:18px; background:none; border:none; cursor:pointer; font-size:20px; color:var(--ink-soft); line-height:1; }
+  .modal-close:hover{ color:var(--ink); }
+  .detail-cat{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--sage); margin-bottom:6px; }
+  .detail-title{ font-family:'Fraunces',serif; font-weight:700; font-size:30px; margin:0 0 14px; color:var(--ink); }
+  .detail-meta{ display:flex; gap:18px; margin-bottom:22px; font-size:13px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .detail-section h4{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:var(--burgundy-dark); margin:0 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .ing-list{ list-style:none; padding:0; margin:0 0 22px; }
+  .ing-list li{ padding:5px 0; font-size:14.5px; display:flex; justify-content:space-between; border-bottom:1px dotted var(--line); }
+  .ing-list li span.amt{ font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px; padding-left:12px; white-space:nowrap; }
+  .steps-list{ margin:0; padding:0 0 0 4px; list-style:none; counter-reset:step; }
+  .steps-list li{ counter-increment:step; display:flex; gap:12px; margin-bottom:14px; font-size:14.5px; line-height:1.55; }
+  .steps-list li::before{ content:counter(step); font-family:'Fraunces',serif; font-weight:700; color:#fff; background:var(--burgundy); width:24px; height:24px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .detail-notes{ background:rgba(198,138,46,0.12); border-left:3px solid var(--mustard); padding:12px 14px; font-size:13.5px; color:var(--ink-soft); border-radius:0 4px 4px 0; margin-top:6px; }
+  .detail-actions{ display:flex; gap:10px; margin-top:26px; border-top:1px solid var(--line); padding-top:18px; }
+  .btn{ padding:9px 16px; border-radius:6px; border:1.5px solid var(--line); background:transparent; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
+  .btn:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .btn-danger:hover{ border-color:var(--burgundy); color:var(--burgundy); }
+  .form-title{ font-family:'Fraunces',serif; font-weight:700; font-size:24px; margin:0 0 20px; color:var(--ink); }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field textarea{ width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:5px; background:#fff; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); outline:none; resize:vertical; }
+  .field input:focus, .field textarea:focus{ border-color:var(--sage); }
+  .field-hint{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+  .btn-primary{ background:var(--burgundy); color:#F5EEDD; border:none; }
+  .btn-primary:hover{ background:var(--burgundy-dark); color:#F5EEDD; }
+  .setup-banner{ background:#5C2222; color:#F5EEDD; padding:14px 20px; font-size:13px; line-height:1.5; }
+  .setup-banner a{ color:#F0C77A; }
+  @media (max-width:720px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; border-right:none; border-bottom:2px solid var(--line); padding:20px 20px 16px; }
+    .cat-list{ display:flex; flex-wrap:wrap; gap:6px; }
+    .cat-tab{ border-radius:16px; border-right:none; padding:7px 12px; }
+    .cat-tab.active{ box-shadow:none; }
+    .add-btn{ width:100%; margin:16px 0 0; }
+    .main{ padding:24px 18px 50px; }
+    .search-wrap input{ width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="setupBanner" style="display:none;" class="setup-banner">
+  ⚠️ Firebase не настроен. Открой <code>firebase-config.js</code> и вставь ключи своего проекта — иначе рецепты не будут сохраняться и синхронизироваться. Локально ничего работать не будет, пока это не сделано.
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <p class="brand">Книга рецептов</p>
+    <p class="brand-sub" id="loadingLabel">загрузка…</p>
+    <p class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">синхронизация…</span></p>
+    <ul class="cat-list" id="catList"></ul>
+    <button class="add-btn" id="openAddBtn">+ Добавить рецепт</button>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h2 class="view-title" id="viewTitle">Все рецепты</h2>
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Поиск по названию или ингредиенту…">
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <h3>Пока пусто</h3>
+      <p>Нажми «+ Добавить рецепт», чтобы завести первую карточку.</p>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="detailOverlay"><div class="modal" id="detailModal"></div></div>
+
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <button class="modal-close" id="formCloseBtn">&times;</button>
+    <p class="form-title" id="formTitle">Новый рецепт</p>
+    <div class="field"><label>Название</label><input type="text" id="f-title" placeholder="Например: Сырники"></div>
+    <div class="row2">
+      <div class="field"><label>Категория</label><input type="text" id="f-category" list="catOptions" placeholder="Например: Завтраки"><datalist id="catOptions"></datalist></div>
+      <div class="field"><label>Порций / время</label><input type="text" id="f-meta" placeholder="Например: 4 порции · 30 мин"></div>
+    </div>
+    <div class="field">
+      <label>Ингредиенты</label>
+      <textarea id="f-ingredients" rows="6" placeholder="По одному на строку:&#10;200 г — творог&#10;2 шт — яйца&#10;3 ст.л. — мука"></textarea>
+      <p class="field-hint">Формат строки: «количество — название»</p>
+    </div>
+    <div class="field"><label>Шаги приготовления</label><textarea id="f-steps" rows="6" placeholder="По одному шагу на строку"></textarea></div>
+    <div class="field"><label>Заметки (необязательно)</label><textarea id="f-notes" rows="2" placeholder="Советы, замены, откуда рецепт…"></textarea></div>
+    <div class="form-actions">
+      <button class="btn" id="formCancelBtn">Отмена</button>
+      <button class="btn btn-primary" id="formSaveBtn">Сохранить рецепт</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { firebaseConfig } from './firebase-config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc,
+  onSnapshot, query, orderBy, enableIndexedDbPersistence
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const isConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('ВСТАВЬ');
+if (!isConfigured) {
+  document.getElementById('setupBanner').style.display = 'block';
+}
+
+let db, auth, recipesCol;
+if (isConfigured) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  auth = getAuth(app);
+  recipesCol = collection(db, 'recipes');
+  try { await enableIndexedDbPersistence(db); } catch (e) { /* multiple tabs open etc. — non-fatal */ }
+}
+
+const syncDot = document.getElementById('syncDot');
+const syncText = document.getElementById('syncText');
+window.addEventListener('online', () => setSyncStatus(true));
+window.addEventListener('offline', () => setSyncStatus(false));
+function setSyncStatus(online){
+  syncDot.classList.toggle('offline', !online);
+  syncText.textContent = online ? 'синхронизировано' : 'офлайн (сохранится позже)';
+}
+setSyncStatus(navigator.onLine);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+let recipes = [];
+let activeCategory = 'Все';
+let editingId = null;
+let searchQuery = '';
+
+const catList = document.getElementById('catList');
+const grid = document.getElementById('grid');
+const emptyState = document.getElementById('emptyState');
+const viewTitle = document.getElementById('viewTitle');
+const loadingLabel = document.getElementById('loadingLabel');
+
+function parseLines(text){ return text.split('\n').map(l=>l.trim()).filter(Boolean); }
+function splitIngredient(line){
+  const m = line.split(/—|-\s/);
+  if(m.length >= 2) return { amount: m[0].trim(), name: m.slice(1).join(' ').trim() };
+  return { amount: '', name: line };
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function getCategories(){
+  const set = new Set(recipes.map(r=>r.category || 'Без категории'));
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'ru'));
+}
+
+function renderCategories(){
+  const cats = getCategories();
+  let html = `<li class="cat-tab ${activeCategory==='Все'?'active':''}" data-cat="Все">
+    <span class="cat-dot"></span>Все рецепты<span class="cat-count">${recipes.length}</span></li>`;
+  cats.forEach(c=>{
+    const count = recipes.filter(r=>(r.category||'Без категории')===c).length;
+    html += `<li class="cat-tab ${activeCategory===c?'active':''}" data-cat="${escapeHtml(c)}">
+      <span class="cat-dot"></span>${escapeHtml(c)}<span class="cat-count">${count}</span></li>`;
+  });
+  catList.innerHTML = html;
+  catList.querySelectorAll('.cat-tab').forEach(el=>{
+    el.addEventListener('click', ()=>{ activeCategory = el.dataset.cat; render(); });
+  });
+  document.getElementById('catOptions').innerHTML = cats.map(c=>`<option value="${escapeHtml(c)}">`).join('');
+}
+
+function render(){
+  renderCategories();
+  viewTitle.textContent = activeCategory === 'Все' ? 'Все рецепты' : activeCategory;
+  let list = recipes.filter(r => activeCategory==='Все' || (r.category||'Без категории')===activeCategory);
+  if(searchQuery){
+    const q = searchQuery.toLowerCase();
+    list = list.filter(r => r.title.toLowerCase().includes(q) || (r.ingredients||[]).some(i => i.name.toLowerCase().includes(q)));
+  }
+  if(list.length === 0){ grid.style.display='none'; emptyState.style.display='block'; return; }
+  grid.style.display = 'grid'; emptyState.style.display = 'none';
+  grid.innerHTML = list.map(r => `
+    <div class="recipe-card" data-id="${r.id}">
+      <div class="card-cat">${escapeHtml(r.category || 'Без категории')}</div>
+      <p class="card-title">${escapeHtml(r.title)}</p>
+      <div class="card-meta"><span>${escapeHtml(r.meta || '')}</span></div>
+    </div>`).join('');
+  grid.querySelectorAll('.recipe-card').forEach(el=> el.addEventListener('click', ()=> openDetail(el.dataset.id)));
+}
+
+function openDetail(id){
+  const r = recipes.find(x=>x.id===id);
+  if(!r) return;
+  const modal = document.getElementById('detailModal');
+  modal.innerHTML = `
+    <button class="modal-close" id="detailCloseBtn">&times;</button>
+    <div class="detail-cat">${escapeHtml(r.category || 'Без категории')}</div>
+    <h2 class="detail-title">${escapeHtml(r.title)}</h2>
+    ${r.meta ? `<div class="detail-meta"><span>${escapeHtml(r.meta)}</span></div>` : ''}
+    <div class="detail-section"><h4>Ингредиенты</h4><ul class="ing-list">
+      ${(r.ingredients||[]).map(i=>`<li>${escapeHtml(i.name)}<span class="amt">${escapeHtml(i.amount)}</span></li>`).join('')}
+    </ul></div>
+    <div class="detail-section"><h4>Приготовление</h4><ol class="steps-list">
+      ${(r.steps||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join('')}
+    </ol></div>
+    ${r.notes ? `<div class="detail-notes">${escapeHtml(r.notes)}</div>` : ''}
+    <div class="detail-actions">
+      <button class="btn" id="editBtn">Редактировать</button>
+      <button class="btn btn-danger" id="deleteBtn">Удалить</button>
+    </div>`;
+  document.getElementById('detailOverlay').classList.add('open');
+  document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+  document.getElementById('editBtn').addEventListener('click', ()=>{ closeDetail(); openForm(r); });
+  document.getElementById('deleteBtn').addEventListener('click', async ()=>{
+    if(confirm('Удалить рецепт «'+r.title+'»?')){
+      await deleteDoc(doc(db, 'recipes', id));
+      closeDetail();
+    }
+  });
+}
+function closeDetail(){ document.getElementById('detailOverlay').classList.remove('open'); }
+
+function openForm(recipe){
+  editingId = recipe ? recipe.id : null;
+  document.getElementById('formTitle').textContent = recipe ? 'Редактировать рецепт' : 'Новый рецепт';
+  document.getElementById('f-title').value = recipe ? recipe.title : '';
+  document.getElementById('f-category').value = recipe ? (recipe.category||'') : '';
+  document.getElementById('f-meta').value = recipe ? (recipe.meta||'') : '';
+  document.getElementById('f-ingredients').value = recipe ? (recipe.ingredients||[]).map(i=> i.amount ? `${i.amount} — ${i.name}` : i.name).join('\n') : '';
+  document.getElementById('f-steps').value = recipe ? (recipe.steps||[]).join('\n') : '';
+  document.getElementById('f-notes').value = recipe ? (recipe.notes||'') : '';
+  document.getElementById('formOverlay').classList.add('open');
+}
+function closeForm(){ document.getElementById('formOverlay').classList.remove('open'); editingId = null; }
+
+document.getElementById('openAddBtn').addEventListener('click', ()=> openForm(null));
+document.getElementById('formCloseBtn').addEventListener('click', closeForm);
+document.getElementById('formCancelBtn').addEventListener('click', closeForm);
+
+document.getElementById('formSaveBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){ alert('Введите название рецепта'); return; }
+  const data = {
+    title,
+    category: document.getElementById('f-category').value.trim() || 'Без категории',
+    meta: document.getElementById('f-meta').value.trim(),
+    ingredients: parseLines(document.getElementById('f-ingredients').value).map(splitIngredient),
+    steps: parseLines(document.getElementById('f-steps').value),
+    notes: document.getElementById('f-notes').value.trim(),
+    dateAdded: new Date().toISOString()
+  };
+  if(editingId){
+    await updateDoc(doc(db, 'recipes', editingId), data);
+  } else {
+    await addDoc(recipesCol, data);
+  }
+  closeForm();
+});
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{ searchQuery = e.target.value; render(); });
+document.getElementById('detailOverlay').addEventListener('click', (e)=>{ if(e.target.id === 'detailOverlay') closeDetail(); });
+document.getElementById('formOverlay').addEventListener('click', (e)=>{ if(e.target.id === 'formOverlay') closeForm(); });
+
+// --- Firebase auth + realtime listener ---
+if (isConfigured) {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { signInAnonymously(auth).catch(err => {
+      loadingLabel.textContent = 'ошибка входа';
+      console.error(err);
+    }); return; }
+    const q = query(recipesCol, orderBy('dateAdded', 'asc'));
+    onSnapshot(q, (snapshot) => {
+      recipes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      loadingLabel.textContent = recipes.length + (recipes.length===1?' рецепт':' рецептов');
+      setSyncStatus(true);
+      render();
+    }, (err) => {
+      console.error(err);
+      setSyncStatus(false);
+    });
+  });
+} else {
+  loadingLabel.textContent = 'настрой Firebase';
+  render();
+}
+</script>
+</body>
+</html>
