@@ -169,7 +169,7 @@
     .cat-tab{ border-radius:16px; border-right:none; padding:6px 11px; }
     .cat-tab.active{ box-shadow:none; }
     .add-btn{ width:100%; margin:14px 0 0; }
-    .main{ padding:20px 16px 80px; }
+    .main{ padding:20px 16px calc(80px + env(safe-area-inset-bottom)); }
     .search-wrap input{ width:100%; }
     .row2, .row4{ grid-template-columns:1fr; }
     .modal{ padding:20px 16px 22px; }
@@ -203,9 +203,10 @@
   .scroll-top-btn{ position:fixed; bottom:80px; right:22px; width:42px; height:42px; border-radius:50%; background:var(--burgundy); color:#F5EEDD; border:none; font-size:18px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.2); display:none; align-items:center; justify-content:center; z-index:35; }
   .scroll-top-btn.show{ display:flex; }
 
-  .bottom-nav{ position:fixed; left:0; right:0; bottom:0; height:60px; background:var(--card); border-top:2px solid var(--line); display:flex; z-index:35; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -4px 14px rgba(43,37,25,0.08); }
-  .bottom-nav button{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:10.5px; font-weight:700; position:relative; }
+  .bottom-nav{ position:fixed; left:0; right:0; bottom:0; height:calc(60px + env(safe-area-inset-bottom)); background:var(--card); border-top:2px solid var(--line); display:flex; z-index:35; padding-bottom:env(safe-area-inset-bottom); box-shadow:0 -4px 14px rgba(43,37,25,0.08); }
+  .bottom-nav button{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:10.5px; font-weight:700; position:relative; padding:0 4px; min-width:0; }
   .bottom-nav button .bn-icon{ font-size:20px; line-height:1; transition:transform .12s; }
+  .bottom-nav button span:not(.bn-icon):not(.bn-badge){ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .bottom-nav button.active{ color:var(--burgundy-dark); }
   .bottom-nav button.active .bn-icon{ transform:translateY(-1px) scale(1.08); }
   .bottom-nav button.active::before{ content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:28px; height:3px; background:var(--burgundy); border-radius:0 0 3px 3px; }
@@ -347,7 +348,7 @@
 <nav class="bottom-nav" id="bottomNav">
   <button data-tab="recipes" class="active"><span class="bn-icon">🍳</span><span>Рецепты</span></button>
   <button data-tab="reference"><span class="bn-icon">📖</span><span>Справочник</span></button>
-  <button data-tab="shopping"><span class="bn-icon">🛒</span><span>Список покупок</span><span class="bn-badge" id="bnShopBadge" style="display:none;"></span></button>
+  <button data-tab="shopping"><span class="bn-icon">🛒</span><span>Покупки</span><span class="bn-badge" id="bnShopBadge" style="display:none;"></span></button>
 </nav>
 
 <div class="overlay" id="confirmOverlay">
