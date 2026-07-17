@@ -325,10 +325,10 @@ function escapeHtml(s){ return (String(s)||'').replace(/[&<>"']/g, m=>({'&':'&am
 function fmtQty(q){ if(q===null||q===undefined) return ''; return (Math.round(q*10)/10).toString(); }
 
 async function seedIfNeeded(){
-  const flagRef = doc(db, 'meta', 'status');
-  const flagSnap = await getDoc(flagRef);
-  if (flagSnap.exists() && flagSnap.data().seeded) return;
   try {
+    const flagRef = doc(db, 'meta', 'status');
+    const flagSnap = await getDoc(flagRef);
+    if (flagSnap.exists() && flagSnap.data().seeded) return;
     let batch = writeBatch(db);
     let count = 0;
     for (const r of seedRecipes) {
@@ -339,7 +339,7 @@ async function seedIfNeeded(){
     }
     await batch.commit();
     await setDoc(flagRef, { seeded:true, seededAt: new Date().toISOString() });
-  } catch(e){ console.error('Seeding failed', e); }
+  } catch(e){ console.error('Seeding failed (non-fatal, recipe list will still load):', e); }
 }
 
 function getCategories(){
@@ -768,14 +768,14 @@ document.getElementById('cookNextBtn').addEventListener('click', ()=>{
 if (isConfigured) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) { signInAnonymously(auth).catch(err => { loadingLabel.textContent = 'ошибка входа'; console.error(err); }); return; }
-    await seedIfNeeded();
+    seedIfNeeded().catch(()=>{});
     const q = query(recipesCol, orderBy('dateAdded', 'asc'));
     onSnapshot(q, (snapshot) => {
       recipes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       loadingLabel.textContent = recipes.length + (recipes.length===1?' рецепт':' рецептов');
       setSyncStatus(true);
       render();
-    }, (err) => { console.error(err); setSyncStatus(false); });
+    }, (err) => { console.error(err); setSyncStatus(false); loadingLabel.textContent = 'ошибка загрузки'; });
   });
 } else {
   loadingLabel.textContent = 'настрой Firebase';
