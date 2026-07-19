@@ -28,6 +28,32 @@ function stripHtml(s){
   return (d.textContent || d.innerText || '').replace(/\s+/g,' ').trim();
 }
 
+// Убираем из текста подписи вида "Фото приготовления рецепта: Название — шаг №3" — на некоторых
+// сайтах такая подпись физически приклеена прямо к тексту шага (ссылка на увеличенное фото
+// с подписью-alt идёт первой, без пробела перед описанием), и наивное извлечение текста
+// цепляет её в начало каждого шага.
+function stripPhotoCaptions(text){
+  return text
+    .replace(/фото\s+(приготовления\s+)?рецепта[^.!?]*?шаг[а-я]*\s*(№|#)?\s*\d+\.?/gi, ' ')
+    .replace(/шаг[а-я]*\s*(№|#)\s*\d+\s*[:.]?/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// То же самое, но на уровне ещё живого DOM-элемента: убираем ссылки/картинки, которые ведут
+// на файлы изображений (частый источник "прилипших" подписей к фото), и только потом
+// достаём текст. Работает надёжнее, чем чистка уже готовой строки постфактум.
+function cleanElementText(el){
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('img, picture, source, figcaption, script, style, noscript, svg').forEach(n=> n.remove());
+  clone.querySelectorAll('a').forEach(a=>{
+    const href = (a.getAttribute('href')||'').toLowerCase();
+    if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/.test(href)) a.remove();
+  });
+  const text = (clone.textContent || '').replace(/\s+/g,' ').trim();
+  return stripPhotoCaptions(text);
+}
+
 const UNIT_MAP = {
   'г':'г','гр':'г','грамм':'г','граммов':'г','граммы':'г','g':'г',
   'кг':'кг','килограмм':'кг','kg':'кг',
@@ -203,7 +229,7 @@ function extractFromMicrodata(doc){
   const scope = doc.querySelector('[itemscope][itemtype*="Recipe" i]');
   if(!scope) return null;
   const propEls = (name) => Array.from(scope.querySelectorAll(`[itemprop="${name}"]`));
-  const propText = (el) => el ? stripHtml(el.getAttribute('content') || el.textContent || '') : '';
+  const propText = (el) => el ? stripPhotoCaptions(stripHtml(el.getAttribute('content') || el.textContent || '')) : '';
 
   const title = propText(propEls('name')[0]);
   const ingredients = propEls('recipeIngredient').map(el=> parseIngredientLine(propText(el))).filter(i=>i.name);
@@ -248,8 +274,8 @@ function extractFromKnownPlugins(doc){
     const ingEls = Array.from(doc.querySelectorAll(sel.ingredients));
     const stepEls = Array.from(doc.querySelectorAll(sel.steps));
     if(ingEls.length===0 && stepEls.length===0) continue;
-    const ingredients = ingEls.map(el=> parseIngredientLine(el.textContent)).filter(i=>i.name);
-    const steps = stepEls.map(el=> ({ text: stripHtml(el.textContent), timerMinutes:null })).filter(s=>s.text);
+    const ingredients = ingEls.map(el=> parseIngredientLine(cleanElementText(el))).filter(i=>i.name);
+    const steps = stepEls.map(el=> ({ text: cleanElementText(el), timerMinutes:null })).filter(s=>s.text);
     if(ingredients.length===0 && steps.length===0) continue;
     const titleEl = doc.querySelector(sel.title);
     const title = titleEl ? stripHtml(titleEl.textContent) : (doc.querySelector('h1') ? stripHtml(doc.querySelector('h1').textContent) : '');
@@ -273,12 +299,12 @@ function findListNearHeading(doc, headingPattern){
     let hops = 0;
     while(el && hops < 6){
       if(el.tagName==='UL' || el.tagName==='OL'){
-        const items = Array.from(el.querySelectorAll('li')).map(li=>stripHtml(li.textContent)).filter(Boolean);
+        const items = Array.from(el.querySelectorAll('li')).map(li=>cleanElementText(li)).filter(Boolean);
         if(items.length) return items;
       }
       const nested = el.querySelector && el.querySelector('ul,ol');
       if(nested){
-        const items = Array.from(nested.querySelectorAll('li')).map(li=>stripHtml(li.textContent)).filter(Boolean);
+        const items = Array.from(nested.querySelectorAll('li')).map(li=>cleanElementText(li)).filter(Boolean);
         if(items.length) return items;
       }
       // Многие современные сайты вообще не используют <ul>/<li> для ингредиентов —
@@ -289,13 +315,14 @@ function findListNearHeading(doc, headingPattern){
         const childTag = el.children[0].tagName;
         const sameTag = Array.from(el.children).every(c=>c.tagName===childTag);
         if(sameTag){
-          const items = Array.from(el.children).map(c=>stripHtml(c.textContent)).filter(t=> t && t.length < 200);
+          const items = Array.from(el.children).map(c=>cleanElementText(c)).filter(t=> t && t.length < 200);
           if(items.length >= 3) return items;
         }
       }
-      // Старые сайты нередко пишут весь способ приготовления одним сплошным абзацем без шагов —
-      // возвращаем его целиком одним "пунктом", а разбивать на шаги/ингредиенты будем уже отдельно.
-      const text = stripHtml(el.textContent || '');
+      // Старые сайты нередко пишут весь способ приготовления одним сплошным абзацем без шагов,
+      // часто вперемешку со ссылками на увеличенные фото каждого шага — cleanElementText уже
+      // вырезал эти ссылки и приклеенные к ним подписи выше по цепочке.
+      const text = cleanElementText(el);
       if(text.length > 150 && (!el.children || el.children.length <= 2)){
         return [text];
       }
