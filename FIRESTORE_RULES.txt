@@ -1,16 +1,54 @@
 // Скопируй это в Firebase Console → Firestore Database → Rules → и нажми "Publish"
+// Замени ВЕСЬ текст в редакторе на этот.
 //
-// Логика: читать/писать может только тот, кто прошёл анонимную авторизацию
+// Логика доступа: читать/писать может только тот, кто прошёл анонимную авторизацию
 // (это происходит автоматически при открытии сайта — см. index.html).
-// Открытым текстом ссылку на сайт лучше никому не давать, это единственная защита.
+// Открытым текстом ссылку на сайт лучше никому не давать, это единственная защита на данный момент
+// (когда сделаем реальный логин администратора — задача №1 из списка улучшений — эти правила
+// поменяются: чтение останется открытым для всех, а запись будет разрешена только владельцу).
+//
+// Что нового по сравнению с предыдущей версией: правила теперь проверяют не только "залогинен ли
+// пользователь", но и САМИ ДАННЫЕ — тип каждого поля и разумные границы значений. Это защищает
+// базу от случайной или намеренной порчи данных (например, кто-то отправит оценку отзыва "9999"
+// вместо числа от 1 до 5, или запишет заголовок рецепта на 50 000 символов) — даже с текущей
+// "слабой" моделью доступа (любой авторизованный может писать), проверка формы данных существенно
+// снижает риск испортить базу.
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ---------- Рецепт: проверка формы и границ ----------
+    function isValidRecipe(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.category is string && data.category.size() <= 60
+        && (!('servings' in data) || data.servings == null || (data.servings is number && data.servings > 0 && data.servings <= 100))
+        && (!('cookTime' in data) || data.cookTime == null || (data.cookTime is number && data.cookTime > 0 && data.cookTime <= 1440))
+        && (!('difficulty' in data) || data.difficulty in ['Легко','Средне','Сложно'])
+        && data.ingredients is list && data.ingredients.size() <= 60
+        && data.steps is list && data.steps.size() <= 60
+        && (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 2000))
+        && (!('favorite' in data) || data.favorite is bool)
+        && (!('willCook' in data) || data.willCook is bool)
+        && (!('photos' in data) || (data.photos is list && data.photos.size() <= 20));
+    }
+
+    // ---------- Отзыв: оценка обязана быть числом от 1 до 5 ----------
+    function isValidReview(data) {
+      return data.rating is number && data.rating >= 1 && data.rating <= 5
+        && (!('text' in data) || data.text == null || (data.text is string && data.text.size() <= 1000))
+        && data.createdAt is string;
+    }
+
     match /recipes/{recipeId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && isValidRecipe(request.resource.data);
+      allow delete: if request.auth != null;
+
       match /reviews/{reviewId} {
-        allow read, write: if request.auth != null;
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && isValidReview(request.resource.data);
+        allow update, delete: if request.auth != null;
       }
     }
     match /meta/{document} {
