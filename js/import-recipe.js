@@ -293,6 +293,12 @@ function findListNearHeading(doc, headingPattern){
           if(items.length >= 3) return items;
         }
       }
+      // Старые сайты нередко пишут весь способ приготовления одним сплошным абзацем без шагов —
+      // возвращаем его целиком одним "пунктом", а разбивать на шаги/ингредиенты будем уже отдельно.
+      const text = stripHtml(el.textContent || '');
+      if(text.length > 150 && (!el.children || el.children.length <= 2)){
+        return [text];
+      }
       el = el.nextElementSibling;
       hops++;
     }
@@ -300,14 +306,75 @@ function findListNearHeading(doc, headingPattern){
   return [];
 }
 
+// ---------- Таблица ингредиентов — частый случай на старых сайтах (название | число | ед. изм.) ----------
+function extractIngredientsFromTable(doc){
+  const tables = Array.from(doc.querySelectorAll('table'));
+  for(const table of tables){
+    const rows = Array.from(table.querySelectorAll('tr')).map(tr=>
+      Array.from(tr.querySelectorAll('td,th')).map(td=> stripHtml(td.textContent))
+    ).filter(cells=> cells.length>=2 && cells.some(c=>c));
+    if(rows.length < 2) continue;
+
+    const numericPattern = /^\d+([.,]\d+)?([-–]\d+)?$/;
+    const numericRows = rows.filter(cells=> cells.some(c=> numericPattern.test(c.trim())));
+    if(numericRows.length < rows.length * 0.5) continue; // не похоже на таблицу с количествами
+
+    const ingredients = rows.map(cells=>{
+      const qtyIdx = cells.findIndex(c=> numericPattern.test(c.trim()));
+      if(qtyIdx === -1){
+        return parseIngredientLine(cells.join(' '));
+      }
+      const qtyRaw = cells[qtyIdx].trim().replace(/[-–].*/,'');
+      const qty = parseFraction(qtyRaw);
+      const unitCandidate = (cells[qtyIdx+1] || '').trim();
+      const mappedUnit = UNIT_MAP[unitCandidate.toLowerCase().replace(/\.$/,'')];
+      const nameParts = cells.filter((_,i)=> i!==qtyIdx && !(mappedUnit && i===qtyIdx+1));
+      const name = nameParts.join(' ').trim();
+      if(!name) return null;
+      return { qty, unit: mappedUnit || 'по вкусу', name };
+    }).filter(Boolean);
+
+    if(ingredients.length >= 2) return ingredients;
+  }
+  return null;
+}
+
+// Разбиваем один сплошной абзац способа приготовления на отдельные шаги по предложениям —
+// стараемся не резать по сокращениям вроде "ст.л.", "т.д.", "5-6 мин." и т.п.
+function splitParagraphIntoSteps(text){
+  const guarded = text
+    .replace(/(\d)\.(\d)/g, '$1\u0000$2')
+    .replace(/\b(т\.д|т\.п|ст\.л|ч\.л|др|см|мм|кг|мин|сек|проч|г)\./gi, m=> m.replace('.', '\u0000'));
+  const sentences = guarded
+    .split(/(?<=[.!?])\s+(?=[А-ЯA-ZЁ])/)
+    .map(s=> s.replace(/\u0000/g, '.').trim())
+    .filter(s=> s.length > 8);
+  return (sentences.length ? sentences : [text]).map(text=> ({ text, timerMinutes: null }));
+}
+
 function extractGenericHeuristic(doc){
   const h1 = doc.querySelector('h1');
   const title = h1 ? stripHtml(h1.textContent) : '';
-  const ingredientLines = findListNearHeading(doc, /ингредиент|ingredient/i);
+
+  let ingredients = extractIngredientsFromTable(doc) || [];
+  if(ingredients.length===0){
+    const ingredientLines = findListNearHeading(doc, /ингредиент|ingredient/i);
+    if(ingredientLines.length === 1 && ingredientLines[0].length > 150){
+      // одной строкой перечислены все продукты через запятую
+      ingredients = ingredientLines[0].split(/[,;]\s*/).map(t=>t.trim()).filter(t=> t.length>1 && t.length<100).map(parseIngredientLine);
+    } else {
+      ingredients = ingredientLines.map(t=> parseIngredientLine(t)).filter(i=>i.name);
+    }
+  }
+
   const stepLines = findListNearHeading(doc, /приготовлен|инструкц|способ\s*приготовления|шаги|instruction|direction|method|steps?\b/i);
-  if(ingredientLines.length===0 && stepLines.length===0) return null;
-  const ingredients = ingredientLines.map(t=> parseIngredientLine(t)).filter(i=>i.name);
-  const steps = stepLines.map(t=> ({ text:t, timerMinutes:null }));
+  let steps;
+  if(stepLines.length === 1 && stepLines[0].length > 150){
+    steps = splitParagraphIntoSteps(stepLines[0]);
+  } else {
+    steps = stepLines.map(t=> ({ text:t, timerMinutes:null }));
+  }
+
   if(ingredients.length===0 && steps.length===0) return null;
   return {
     title, category: guessCategory(title), servings:null, cookTime:null,
