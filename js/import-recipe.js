@@ -76,26 +76,45 @@ function parseIngredientLine(raw){
     return { qty: null, unit: 'по вкусу', name: name || line };
   }
 
-  // Диапазон "2-3 шт" → берём меньшее значение диапазона
-  line = line.replace(/^(\d+)\s*[-–]\s*\d+/, '$1');
-  // Слитная дробь "1½" → "1.5"
-  line = line.replace(/^(\d+)([½⅓⅔¼¾⅛])/, (m, whole, frac)=> (parseInt(whole) + FRACTIONS[frac]).toString());
+  // Попытка 1: количество в начале строки — "200 г мука", "2-3 шт лук"
+  const qtyFirst = tryParseQtyFirst(line);
+  if(qtyFirst) return qtyFirst;
 
-  const m = line.match(/^([\d]+(?:[.,]\d+)?(?:\s*\/\s*\d+)?|[½⅓⅔¼¾⅛])\s*([a-zA-Zа-яёА-ЯЁ.]+)?\.?\s+(.*)$/);
-  if(m){
-    const qty = parseFraction(m[1].replace(/\s/g,''));
-    const unitWord = (m[2]||'').toLowerCase().replace(/\.$/,'');
-    const mappedUnit = UNIT_MAP[unitWord];
-    const name = (m[3]||'').trim();
-    if(qty !== null && mappedUnit && name){
-      return { qty, unit: mappedUnit, name };
-    }
-    if(qty !== null && name){
-      // число нашли, а единицу измерения — нет; не теряем текст, кладём остаток как есть
-      return { qty: null, unit: 'по вкусу', name: line };
-    }
-  }
+  // Попытка 2: сначала название, количество — где-то дальше в строке.
+  // Частый случай на старых сайтах: "Мука — 150 г", "Яйца в 5 шт.", "Сахар: 100 г"
+  const nameFirst = tryParseNameFirst(line);
+  if(nameFirst) return nameFirst;
+
   return { qty: null, unit: 'по вкусу', name: line };
+}
+
+function tryParseQtyFirst(line){
+  let normalized = line
+    .replace(/^(\d+)\s*[-–]\s*\d+/, '$1')
+    .replace(/^(\d+)([½⅓⅔¼¾⅛])/, (m, whole, frac)=> (parseInt(whole) + FRACTIONS[frac]).toString());
+  const m = normalized.match(/^([\d]+(?:[.,]\d+)?(?:\s*\/\s*\d+)?|[½⅓⅔¼¾⅛])\s*([a-zA-Zа-яёА-ЯЁ.]+)?\.?\s+(.+)$/);
+  if(!m) return null;
+  const qty = parseFraction(m[1].replace(/\s/g,''));
+  const unitWord = (m[2]||'').toLowerCase().replace(/\.$/,'');
+  const mappedUnit = UNIT_MAP[unitWord];
+  const name = (m[3]||'').trim();
+  if(qty !== null && mappedUnit && name) return { qty, unit: mappedUnit, name };
+  return null;
+}
+
+function tryParseNameFirst(line){
+  // Название (короткая фраза без цифр) — разделитель (—/-/: или предлог "в") — число — единица.
+  // Важно: \b не работает с кириллицей в JS-регулярках, поэтому предлог "в" ищем через явные пробелы.
+  const m = line.match(/^([^\d]{2,60}?)(?:\s*[—\-:]\s*|\sв\s)(\d+(?:[.,]\d+)?(?:\s*[-–]\s*\d+)?|[½⅓⅔¼¾⅛])\s*([а-яёА-ЯЁa-zA-Z.]*)/);
+  if(!m) return null;
+  const name = m[1].trim().replace(/[—\-:]+$/,'').trim();
+  if(!name || name.length < 2) return null;
+  const qtyRaw = m[2].replace(/[-–].*/,'').replace(/\s/g,'');
+  const qty = parseFraction(qtyRaw);
+  if(qty === null) return null;
+  const unitWord = (m[3]||'').toLowerCase().replace(/\.$/,'');
+  const mappedUnit = UNIT_MAP[unitWord];
+  return { qty, unit: mappedUnit || 'шт', name };
 }
 
 function parseDurationToMinutes(iso){
@@ -333,34 +352,29 @@ function findListNearHeading(doc, headingPattern){
   return [];
 }
 
-// ---------- Таблица ингредиентов — частый случай на старых сайтах (название | число | ед. изм.) ----------
+// ---------- Таблица ингредиентов — частый случай на старых сайтах ----------
+// Формат ячеек отличается от сайта к сайту: где-то число и единица в своей колонке,
+// где-то всё (название, число, единица) одной строкой в единственной ячейке.
+// Не гадаем заранее — склеиваем ячейки строки в одну строку и пропускаем через
+// parseIngredientLine, который сам понимает оба порядка слов.
 function extractIngredientsFromTable(doc){
   const tables = Array.from(doc.querySelectorAll('table'));
   for(const table of tables){
     const rows = Array.from(table.querySelectorAll('tr')).map(tr=>
-      Array.from(tr.querySelectorAll('td,th')).map(td=> stripHtml(td.textContent))
-    ).filter(cells=> cells.length>=2 && cells.some(c=>c));
+      Array.from(tr.querySelectorAll('td,th')).map(td=> cleanElementText(td))
+    ).filter(cells=> cells.some(c=>c));
     if(rows.length < 2) continue;
 
-    const numericPattern = /^\d+([.,]\d+)?([-–]\d+)?$/;
-    const numericRows = rows.filter(cells=> cells.some(c=> numericPattern.test(c.trim())));
-    if(numericRows.length < rows.length * 0.5) continue; // не похоже на таблицу с количествами
+    const candidateLines = rows
+      .map(cells=> cells.filter(Boolean).join(' ').trim())
+      .filter(t=> t.length > 1 && t.length < 250);
+    if(candidateLines.length < 2) continue;
 
-    const ingredients = rows.map(cells=>{
-      const qtyIdx = cells.findIndex(c=> numericPattern.test(c.trim()));
-      if(qtyIdx === -1){
-        return parseIngredientLine(cells.join(' '));
-      }
-      const qtyRaw = cells[qtyIdx].trim().replace(/[-–].*/,'');
-      const qty = parseFraction(qtyRaw);
-      const unitCandidate = (cells[qtyIdx+1] || '').trim();
-      const mappedUnit = UNIT_MAP[unitCandidate.toLowerCase().replace(/\.$/,'')];
-      const nameParts = cells.filter((_,i)=> i!==qtyIdx && !(mappedUnit && i===qtyIdx+1));
-      const name = nameParts.join(' ').trim();
-      if(!name) return null;
-      return { qty, unit: mappedUnit || 'по вкусу', name };
-    }).filter(Boolean);
+    // Похоже на таблицу ингредиентов, если хотя бы в трети строк вообще есть цифра
+    const withDigits = candidateLines.filter(t=> /\d/.test(t));
+    if(withDigits.length < candidateLines.length * 0.34) continue;
 
+    const ingredients = candidateLines.map(t=> parseIngredientLine(t)).filter(i=> i.name);
     if(ingredients.length >= 2) return ingredients;
   }
   return null;
@@ -371,7 +385,7 @@ function extractIngredientsFromTable(doc){
 function splitParagraphIntoSteps(text){
   const guarded = text
     .replace(/(\d)\.(\d)/g, '$1\u0000$2')
-    .replace(/\b(т\.д|т\.п|ст\.л|ч\.л|др|см|мм|кг|мин|сек|проч|г)\./gi, m=> m.replace('.', '\u0000'));
+    .replace(/(^|\s)(т\.д|т\.п|ст\.л|ч\.л|др|см|мм|кг|мин|сек|проч|г)\./gi, (m,pre,abbr)=> pre+abbr+'\u0000');
   const sentences = guarded
     .split(/(?<=[.!?])\s+(?=[А-ЯA-ZЁ])/)
     .map(s=> s.replace(/\u0000/g, '.').trim())
