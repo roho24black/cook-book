@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cookbook-v4';
+const CACHE_NAME = 'cookbook-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,20 @@ const ASSETS = [
   './recipes-seed.js',
   './recipes-seed-v2.js',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './js/main.js',
+  './js/firebase-init.js',
+  './js/constants.js',
+  './js/utils.js',
+  './js/store.js',
+  './js/seed.js',
+  './js/render-list.js',
+  './js/detail.js',
+  './js/form.js',
+  './js/cooking-mode.js',
+  './js/shopping-list.js',
+  './js/gallery-reviews-feed.js',
+  './js/bottom-nav.js'
 ];
 
 self.addEventListener('install', (event) => {
