@@ -4,6 +4,9 @@
 // путаницы с тем, кто и когда что обновил.
 
 export const store = {
+  // авторизация
+  isAdmin: false,
+
   // данные
   recipes: [],
   hasLoadedOnce: false,

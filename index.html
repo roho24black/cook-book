@@ -52,6 +52,9 @@
   .import-tab{ flex:1; padding:9px; border-radius:6px; border:1.5px solid var(--line); background:var(--paper); font-size:12.5px; font-weight:700; color:var(--ink-soft); cursor:pointer; }
   .import-tab.active{ background:var(--burgundy); border-color:var(--burgundy); color:#F5EEDD; }
   .import-hint{ font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5; }
+  .admin-login-link{ background:none; border:none; padding:0; margin:10px 20px 0 0; font-size:10.5px; color:var(--ink-soft); opacity:.55; cursor:pointer; text-align:left; width:calc(100% - 20px); }
+  .admin-login-link:hover{ opacity:1; text-decoration:underline; }
+  body:not(.is-admin) .admin-only{ display:none !important; }
   .main{ flex:1; padding:28px 36px 96px; max-width:1200px; min-width:0; }
   .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
   .view-title{ font-family:'Fraunces',serif; font-weight:700; font-size:27px; margin:0; color:var(--ink); }
@@ -309,8 +312,9 @@
       <button class="qa-btn" id="referenceBtn">📖 Справочник</button>
     </div>
     <ul class="cat-list" id="catList"></ul>
-    <button class="add-btn" id="openAddBtn">+ Добавить рецепт</button>
-    <button class="add-btn" id="importBtn" style="background:var(--sage); margin-top:8px;">🔗 Импорт рецепта</button>
+    <button class="add-btn admin-only" id="openAddBtn">+ Добавить рецепт</button>
+    <button class="add-btn admin-only" id="importBtn" style="background:var(--sage); margin-top:8px;">🔗 Импорт рецепта</button>
+    <button class="admin-login-link" id="adminLoginLink">🔒 Вход для автора</button>
   </aside>
 
   <main class="main">
@@ -341,6 +345,20 @@
 </div>
 
 <div class="overlay" id="detailOverlay"><div class="modal" id="detailModal"></div></div>
+
+<div class="overlay" id="adminLoginOverlay">
+  <div class="modal" style="max-width:340px; text-align:center;">
+    <button class="modal-close" id="adminLoginCloseBtn">&times;</button>
+    <p class="form-title" style="margin-bottom:6px;">🔒 Вход для автора</p>
+    <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 18px;">Нужен только для редактирования рецептов — смотреть, favorить и оставлять отзывы можно и без входа.</p>
+    <form id="adminLoginForm">
+      <input type="password" id="adminPasswordInput" placeholder="Пароль" autocomplete="current-password"
+        style="width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; font-size:14px; text-align:center; font-family:'Inter',sans-serif;">
+      <p id="adminLoginError" style="font-size:12px; color:var(--red); min-height:16px; margin:8px 0;"></p>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Войти</button>
+    </form>
+  </div>
+</div>
 
 <div class="overlay" id="importOverlay">
   <div class="modal" style="max-width:560px;">

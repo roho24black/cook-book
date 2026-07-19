@@ -1,24 +1,27 @@
 // Скопируй это в Firebase Console → Firestore Database → Rules → и нажми "Publish"
 // Замени ВЕСЬ текст в редакторе на этот.
 //
-// Логика доступа: читать/писать может только тот, кто прошёл анонимную авторизацию
-// (это происходит автоматически при открытии сайта — см. index.html).
-// Открытым текстом ссылку на сайт лучше никому не давать, это единственная защита на данный момент
-// (когда сделаем реальный логин администратора — задача №1 из списка улучшений — эти правила
-// поменяются: чтение останется открытым для всех, а запись будет разрешена только владельцу).
+// UID администратора уже вставлен ниже — если захочешь сменить админ-аккаунт в будущем,
+// не забудь заменить его в функции isAdmin() перед публикацией.
 //
-// Что нового по сравнению с предыдущей версией: правила теперь проверяют не только "залогинен ли
-// пользователь", но и САМИ ДАННЫЕ — тип каждого поля и разумные границы значений. Это защищает
-// базу от случайной или намеренной порчи данных (например, кто-то отправит оценку отзыва "9999"
-// вместо числа от 1 до 5, или запишет заголовок рецепта на 50 000 символов) — даже с текущей
-// "слабой" моделью доступа (любой авторизованный может писать), проверка формы данных существенно
-// снижает риск испортить базу.
+// Модель доступа с этой версии:
+// - Читать рецепты и отзывы может кто угодно с авторизацией (в т.ч. анонимной — она происходит
+//   автоматически при открытии сайта).
+// - Создавать, полностью редактировать и удалять рецепты, а также удалять/редактировать чужие
+//   отзывы — может ТОЛЬКО автор (тот, кто вошёл по паролю, см. admin-auth.js).
+// - Любой посетитель (даже анонимный) по-прежнему может: поставить/снять избранное, отметить
+//   "буду готовить", добавить фото к рецепту, оставить свой отзыв — эти действия не требуют пароля,
+//   это осознанное решение, чтобы близкие могли пользоваться книгой без входа.
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---------- Рецепт: проверка формы и границ ----------
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == '4XwOCBBWfgcYNjPHJogPxzEmrt23';
+    }
+
+    // ---------- Рецепт: проверка формы и границ (для полного создания/редактирования автором) ----------
     function isValidRecipe(data) {
       return data.title is string && data.title.size() > 0 && data.title.size() <= 200
         && data.category is string && data.category.size() <= 60
@@ -42,15 +45,31 @@ service cloud.firestore {
 
     match /recipes/{recipeId} {
       allow read: if request.auth != null;
-      allow create, update: if request.auth != null && isValidRecipe(request.resource.data);
-      allow delete: if request.auth != null;
+
+      // Полное создание и редактирование рецепта — только автор.
+      allow create: if isAdmin() && isValidRecipe(request.resource.data);
+
+      // Обновление: либо автор меняет рецепт целиком (с проверкой формы),
+      // либо кто угодно авторизованный меняет ТОЛЬКО избранное/"буду готовить"/фото —
+      // остальные поля при этом трогать нельзя.
+      allow update: if (isAdmin() && isValidRecipe(request.resource.data))
+        || (
+          request.auth != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorite','willCook','photos'])
+          && (!('photos' in request.resource.data) || (request.resource.data.photos is list && request.resource.data.photos.size() <= 20))
+        );
+
+      allow delete: if isAdmin();
 
       match /reviews/{reviewId} {
         allow read: if request.auth != null;
+        // Оставить отзыв может кто угодно авторизованный (с проверкой формы).
         allow create: if request.auth != null && isValidReview(request.resource.data);
-        allow update, delete: if request.auth != null;
+        // Редактировать/удалять чужие отзывы — только автор (модерация).
+        allow update, delete: if isAdmin();
       }
     }
+
     match /meta/{document} {
       allow read, write: if request.auth != null;
     }

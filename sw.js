@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cookbook-v6';
+const CACHE_NAME = 'cookbook-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -20,7 +20,9 @@ const ASSETS = [
   './js/shopping-list.js',
   './js/gallery-reviews-feed.js',
   './js/bottom-nav.js',
-  './js/import-recipe.js'
+  './js/import-recipe.js',
+  './js/admin-auth.js',
+  './js/admin-config.js'
 ];
 
 self.addEventListener('install', (event) => {

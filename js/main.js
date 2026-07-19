@@ -15,6 +15,7 @@ import './shopping-list.js';
 import './gallery-reviews-feed.js';
 import './bottom-nav.js';
 import './import-recipe.js';
+import './admin-auth.js';
 
 import { signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';

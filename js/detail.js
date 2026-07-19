@@ -115,8 +115,8 @@ export function renderDetail(r){
       <button class="btn" id="shareBtn">📋 Скопировать</button>
       <button class="btn" id="favDetailBtn">${r.favorite?'★ В избранном':'☆ В избранное'}</button>
       <button class="btn" id="queueDetailBtn">${r.willCook?'📌 В планах':'🗓️ Буду готовить'}</button>
-      <button class="btn" id="editBtn">Изменить</button>
-      <button class="btn btn-danger" id="deleteBtn">Удалить</button>
+      <button class="btn admin-only" id="editBtn">Изменить</button>
+      <button class="btn btn-danger admin-only" id="deleteBtn">Удалить</button>
     </div>
     <div class="detail-section"><h4>Ингредиенты</h4><ul class="ing-list" id="detailIngList">${ingredientsHtml}</ul></div>
     <div class="detail-section"><h4>Приготовление</h4><ol class="steps-list">${stepsHtml}</ol></div>
