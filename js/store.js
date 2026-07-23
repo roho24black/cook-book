@@ -15,6 +15,7 @@ export const store = {
   activeCategory: 'Все',
   searchQuery: '',
   activeDifficulty: null,
+  activeTag: null,
   favOnly: false,
   queueOnly: false,
   sortMode: 'new',

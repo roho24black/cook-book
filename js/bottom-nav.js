@@ -67,12 +67,15 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape'){
     if(document.getElementById('lightboxOverlay').classList.contains('open')) closeLightbox();
     else if(document.getElementById('galleryOverlay').classList.contains('open')) document.getElementById('galleryCloseBtn').click();
+    else if(document.getElementById('plannerOverlay').classList.contains('open')) document.getElementById('plannerCloseBtn').click();
     else if(document.getElementById('reviewsFeedOverlay').classList.contains('open')) document.getElementById('reviewsFeedCloseBtn').click();
     else if(document.getElementById('referenceOverlay').classList.contains('open')) document.getElementById('referenceCloseBtn').click();
     else if(document.getElementById('cookOverlay').classList.contains('open')) stopCookMode();
     else if(document.getElementById('confirmOverlay').classList.contains('open')) document.getElementById('confirmCancelBtn').click();
     else if(document.getElementById('shopOverlay').classList.contains('open')) document.getElementById('shopCloseBtn').click();
     else if(document.getElementById('formOverlay').classList.contains('open')) document.getElementById('formCloseBtn').click();
+    else if(document.getElementById('importOverlay')?.classList.contains('open')) document.getElementById('importCloseBtn').click();
+    else if(document.getElementById('adminLoginOverlay')?.classList.contains('open')) document.getElementById('adminLoginCloseBtn').click();
     else if(document.getElementById('detailOverlay').classList.contains('open')) closeDetail();
     return;
   }

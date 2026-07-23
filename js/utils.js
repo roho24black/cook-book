@@ -10,6 +10,7 @@ export function fmtQty(q){
 }
 
 export function highlightMatch(text, q){
+  text = text || '';
   if(!q) return escapeHtml(text);
   const idx = text.toLowerCase().indexOf(q.toLowerCase());
   if(idx===-1) return escapeHtml(text);

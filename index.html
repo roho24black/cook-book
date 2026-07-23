@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Книга рецептов</title>
+<script>
+  // Применяем тему СРАЗУ, синхронно, до отрисовки страницы — иначе на долю секунды
+  // мелькает светлая тема даже у тех, кто выбрал тёмную (JS-модули грузятся с задержкой).
+  (function(){
+    try{
+      var saved = localStorage.getItem('theme');
+      var theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    }catch(e){}
+  })();
+</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#7A2E2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,6 +30,13 @@
     --burgundy:#7A2E2E; --burgundy-dark:#5C2222; --sage:#586B4D; --mustard:#C68A2E;
     --card:#FBF6EA; --line:#D9CBA6; --green:#4C7A5C; --red:#B5453D;
   }
+  html[data-theme="dark"]{
+    --paper:#221D17; --paper-shadow:#141210; --ink:#EDE3D3; --ink-soft:#B8AB94;
+    --burgundy:#C97B6A; --burgundy-dark:#E39684; --sage:#8FAE86; --mustard:#E0AA5C;
+    --card:#2E2820; --line:#443B2E; --green:#7FBF8A; --red:#E28A80;
+  }
+  html[data-theme="dark"] .card-banner, html[data-theme="dark"] .shop-header-icon{ filter:brightness(0.85); }
+  html[data-theme="dark"] .lightbox-nav{ background:rgba(255,255,255,0.1); }
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--paper);
@@ -47,12 +65,8 @@
   .add-btn{ margin:18px 20px 0 0; width:calc(100% - 20px); padding:11px 14px; background:var(--burgundy); color:#F5EEDD; border:none; border-radius:6px; font-weight:700; font-size:13.5px; cursor:pointer; }
   .add-btn:hover{ background:var(--burgundy-dark); }
   .add-btn:active{ transform:scale(0.98); }
-  #importBtn:hover{ background:#465e3d; }
-  .import-tabs{ display:flex; gap:8px; margin-bottom:16px; }
-  .import-tab{ flex:1; padding:9px; border-radius:6px; border:1.5px solid var(--line); background:var(--paper); font-size:12.5px; font-weight:700; color:var(--ink-soft); cursor:pointer; }
-  .import-tab.active{ background:var(--burgundy); border-color:var(--burgundy); color:#F5EEDD; }
-  .import-hint{ font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5; }
   .admin-login-link{ background:none; border:none; padding:0; margin:10px 20px 0 0; font-size:10.5px; color:var(--ink-soft); opacity:.55; cursor:pointer; text-align:left; width:calc(100% - 20px); }
+  #importBtn:hover{ background:#465e3d; }
   .admin-login-link:hover{ opacity:1; text-decoration:underline; }
   body:not(.is-admin) .admin-only{ display:none !important; }
   .main{ flex:1; padding:28px 36px 96px; max-width:1200px; min-width:0; }
@@ -91,6 +105,19 @@
   .card-title{ font-family:'Fraunces',serif; font-weight:600; font-size:18px; line-height:1.25; margin:6px 0 10px; color:var(--ink); }
   .card-title mark{ background:rgba(198,138,46,0.35); color:inherit; border-radius:2px; }
   .card-meta{ display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-soft); border-top:1px dashed var(--line); padding-top:9px; align-items:center; }
+  .card-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .tag-chip{ font-size:10.5px; padding:2px 8px; border-radius:10px; background:rgba(88,107,77,0.12); color:var(--sage); cursor:pointer; font-weight:600; }
+  .tag-chip:hover{ background:rgba(88,107,77,0.22); }
+  .tag-chip.active{ background:var(--sage); color:#fff; }
+  .planner-actions{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .planner-day{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:12px; }
+  .planner-day-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--burgundy-dark); margin-bottom:10px; }
+  .planner-day-recipes{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .planner-chip{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:6px 10px; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .planner-chip:hover{ border-color:var(--sage); }
+  .planner-remove{ color:var(--red); font-weight:700; cursor:pointer; }
+  .planner-empty{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .planner-add{ padding:7px 10px; border-radius:6px; border:1.5px solid var(--line); background:var(--card); color:var(--ink); font-size:12.5px; width:100%; max-width:280px; }
   .badge{ padding:2px 7px; border-radius:9px; font-size:10px; font-weight:700; }
   .badge.Легко{ background:rgba(76,122,92,0.15); color:var(--green); }
   .badge.Средне{ background:rgba(198,138,46,0.18); color:var(--mustard); }
@@ -110,7 +137,7 @@
   .detail-meta-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
   .meta-pill{ display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:14px; background:rgba(88,107,77,0.1); font-size:12px; color:var(--ink-soft); font-weight:600; }
   .servings-adjust{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:4px 6px; }
-  .servings-adjust button{ width:22px; height:22px; border-radius:50%; border:1px solid var(--line); background:#fff; cursor:pointer; font-weight:700; color:var(--burgundy); line-height:1; }
+  .servings-adjust button{ width:22px; height:22px; border-radius:50%; border:1px solid var(--line); background:var(--card); cursor:pointer; font-weight:700; color:var(--burgundy); line-height:1; }
   .servings-adjust button:disabled{ opacity:.3; cursor:default; color:var(--ink-soft); }
   .servings-adjust span{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; min-width:60px; text-align:center; }
   .detail-actions-top{ display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
@@ -134,7 +161,7 @@
   .form-title{ font-family:'Fraunces',serif; font-weight:700; font-size:22px; margin:0 0 18px; color:var(--ink); }
   .field{ margin-bottom:14px; }
   .field label{ display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:6px; }
-  .field input, .field textarea, .field select{ width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:5px; background:#fff; font-size:14px; color:var(--ink); outline:none; resize:vertical; font-family:'Inter',sans-serif; }
+  .field input, .field textarea, .field select{ width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:5px; background:var(--card); font-size:14px; color:var(--ink); outline:none; resize:vertical; font-family:'Inter',sans-serif; }
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--sage); }
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .row4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; }
@@ -291,6 +318,15 @@
   .feed-review-item{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; cursor:pointer; }
   .feed-review-item:hover{ border-color:var(--sage); }
   .feed-review-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--ink); margin-bottom:4px; }
+  @media print{
+    .sidebar, .bottom-nav, .scroll-top-btn, .toast-container, #setupBanner,
+    .modal-close, .detail-actions-top, .servings-adjust button, #photoGallery,
+    .avg-rating-pill, .no-print{ display:none !important; }
+    body{ background:#fff; }
+    .overlay{ position:static; background:none; padding:0; opacity:1; visibility:visible; }
+    .modal{ box-shadow:none; max-width:100%; }
+    .detail-title{ padding-right:0; }
+  }
 </style>
 </head>
 <body>
@@ -310,11 +346,14 @@
       <button class="qa-btn" id="queueToggleSidebar">📌 Буду готовить</button>
       <button class="qa-btn" id="shopModeBtn">🛒 Список покупок</button>
       <button class="qa-btn" id="referenceBtn">📖 Справочник</button>
+      <button class="qa-btn" id="plannerBtn">📅 Планировщик недели</button>
+      <button class="qa-btn" id="themeToggleBtn">🌙 Тёмная тема</button>
     </div>
     <ul class="cat-list" id="catList"></ul>
     <button class="add-btn admin-only" id="openAddBtn">+ Добавить рецепт</button>
-    <button class="add-btn admin-only" id="importBtn" style="background:var(--sage); margin-top:8px;">🔗 Импорт рецепта</button>
+    <button class="add-btn admin-only" id="importBtn" style="background:var(--sage); margin-top:8px;">📋 Импорт от Клода</button>
     <button class="admin-login-link" id="adminLoginLink">🔒 Вход для автора</button>
+    <button class="admin-login-link" id="exportBackupBtn">💾 Скачать резервную копию</button>
   </aside>
 
   <main class="main">
@@ -363,24 +402,17 @@
 <div class="overlay" id="importOverlay">
   <div class="modal" style="max-width:560px;">
     <button class="modal-close" id="importCloseBtn">&times;</button>
-    <p class="form-title">🔗 Импорт рецепта</p>
-    <div class="import-tabs">
-      <button class="import-tab active" data-mode="url">По ссылке</button>
-      <button class="import-tab" data-mode="text">Вставить текст</button>
+    <p class="form-title">📋 Импорт рецепта от Клода</p>
+    <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5;">
+      Скопируй шаблон ниже и отправь его в любой другой чат с Клодом, вписав туда нужное блюдо.
+      Ответ целиком вставь в поле снизу — формат заранее известный, поэтому разбирается без ошибок.
+    </p>
+    <button class="btn btn-primary" id="importTemplateBtn" style="width:100%; justify-content:center; margin-bottom:16px;">📎 Скопировать шаблон-инструкцию</button>
+    <div class="field">
+      <label>Ответ от Клода</label>
+      <textarea id="importTextInput" rows="12" placeholder="Вставь сюда весь ответ целиком, как прислал Клод"></textarea>
     </div>
-    <div id="importUrlPane">
-      <div class="field"><label>Ссылка на рецепт</label><input type="url" id="importUrlInput" placeholder="https://..."></div>
-      <button class="btn btn-primary" id="importUrlBtn">Загрузить и распознать</button>
-      <p class="import-hint">Сработает не на всех сайтах — зависит от того, как сайт размечает свои рецепты. Если не получится, переключись на вкладку «Вставить текст».</p>
-    </div>
-    <div id="importTextPane" style="display:none;">
-      <div class="field">
-        <label>Текст рецепта</label>
-        <textarea id="importTextInput" rows="10" placeholder="Скопируй сюда весь текст рецепта с любого сайта — название, ингредиенты, шаги"></textarea>
-      </div>
-      <button class="btn btn-primary" id="importTextBtn">Распознать</button>
-      <p class="import-hint">Работает всегда, но менее точно — проверь результат перед сохранением.</p>
-    </div>
+    <button class="btn btn-primary" id="importParseBtn">Разобрать и открыть форму</button>
     <div id="importStatus" style="margin-top:12px; font-size:13px; color:var(--ink-soft);"></div>
   </div>
 </div>
@@ -392,8 +424,8 @@
     <div class="field"><label>Название</label><input type="text" id="f-title" placeholder="Например: Сырники"></div>
     <div class="row4">
       <div class="field"><label>Категория</label><input type="text" id="f-category" list="catOptions" placeholder="Завтраки"><datalist id="catOptions"></datalist></div>
-      <div class="field"><label>Порций</label><input type="number" id="f-servings" min="1" value="4"></div>
-      <div class="field"><label>Время, мин</label><input type="number" id="f-cooktime" min="1" value="30"></div>
+      <div class="field"><label>Порций</label><input type="number" inputmode="numeric" id="f-servings" min="1" value="4"></div>
+      <div class="field"><label>Время, мин</label><input type="number" inputmode="numeric" id="f-cooktime" min="1" value="30"></div>
       <div class="field"><label>Сложность</label><select id="f-difficulty"><option>Легко</option><option>Средне</option><option>Сложно</option></select></div>
     </div>
 
@@ -405,6 +437,7 @@
     <div id="stepRows"></div>
     <button type="button" class="row-add" id="addStepRow">+ Добавить шаг</button>
 
+    <div class="field"><label>Теги (через запятую, необязательно)</label><input type="text" id="f-tags" placeholder="быстро, для детей, на праздник"></div>
     <div class="field"><label>Заметки (необязательно)</label><textarea id="f-notes" rows="2" placeholder="Советы, замены…"></textarea></div>
     <div class="form-actions">
       <button class="btn" id="formCancelBtn">Отмена</button>
@@ -505,6 +538,20 @@
   <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:640px; margin:0 auto; width:100%; padding:24px 20px 60px;">
     <div id="reviewsFeedList"></div>
     <p id="reviewsFeedEmpty" style="display:none; text-align:center; color:var(--ink-soft); padding:60px 20px; font-size:14px;">Отзывов пока нет — приготовь что-нибудь и поделись впечатлением! ⭐</p>
+  </div>
+</div>
+
+<div class="cook-overlay tab-page" id="plannerOverlay">
+  <div class="cook-header">
+    <span class="cook-title">📅 Планировщик на неделю</span>
+    <button class="cook-close" id="plannerCloseBtn">&times;</button>
+  </div>
+  <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:820px; margin:0 auto; width:100%; padding:24px 20px 60px;">
+    <div class="planner-actions">
+      <button class="btn btn-primary" id="plannerShopBtn">🛒 Список покупок на неделю</button>
+      <button class="btn btn-danger" id="plannerClearBtn">Очистить неделю</button>
+    </div>
+    <div id="plannerDays"></div>
   </div>
 </div>
 

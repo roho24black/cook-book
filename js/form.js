@@ -18,7 +18,7 @@ function ingRowHtml(i){
   const unit = m ? (m.unit||'г') : 'г';
   const name = m ? (m.name||'') : '';
   return `<div class="ing-row">
-    <input type="number" step="0.1" class="ing-qty" placeholder="кол-во" value="${qty}">
+    <input type="number" step="0.1" inputmode="decimal" class="ing-qty" placeholder="кол-во" value="${qty}">
     <select class="ing-unit">${UNITS.map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select>
     <input type="text" class="ing-name" placeholder="название" value="${escapeHtml(name)}">
     <button type="button" class="row-remove">×</button>
@@ -29,7 +29,7 @@ function stepRowHtml(s){
   const tm = s && typeof s==='object' ? (s.timerMinutes||'') : '';
   return `<div class="step-row">
     <textarea rows="2" class="step-text" placeholder="Что делать на этом шаге">${escapeHtml(text)}</textarea>
-    <input type="number" class="step-timer" placeholder="таймер, мин" value="${tm}">
+    <input type="number" inputmode="numeric" class="step-timer" placeholder="таймер, мин" value="${tm}">
     <button type="button" class="row-remove">×</button>
   </div>`;
 }
@@ -62,6 +62,7 @@ export function openForm(recipe){
   document.getElementById('f-cooktime').value = recipe ? (recipe.cookTime||30) : 30;
   document.getElementById('f-difficulty').value = recipe ? (recipe.difficulty||'Легко') : 'Легко';
   document.getElementById('f-notes').value = recipe ? (recipe.notes||'') : '';
+  document.getElementById('f-tags').value = recipe ? (recipe.tags||[]).join(', ') : '';
 
   document.getElementById('ingRows').innerHTML = '';
   document.getElementById('stepRows').innerHTML = '';
@@ -105,15 +106,17 @@ document.getElementById('formSaveBtn').addEventListener('click', async ()=>{
     difficulty: document.getElementById('f-difficulty').value,
     ingredients, steps,
     notes: document.getElementById('f-notes').value.trim(),
-    dateAdded: new Date().toISOString()
+    tags: document.getElementById('f-tags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean).slice(0,10)
   };
 
   if(store.editingId){
     const existing = store.recipes.find(r=>r.id===store.editingId);
+    // dateAdded намеренно не трогаем — редактирование не должно менять "возраст" рецепта
+    // и ломать сортировку "Сначала новые/старые".
     await updateDoc(doc(db, 'recipes', store.editingId), { ...data, favorite: existing ? !!existing.favorite : false });
     showToast('Рецепт обновлён');
   } else {
-    await addDoc(recipesCol, { ...data, favorite:false });
+    await addDoc(recipesCol, { ...data, favorite:false, dateAdded: new Date().toISOString() });
     showToast('Рецепт добавлен');
   }
   closeForm();

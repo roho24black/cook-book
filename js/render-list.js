@@ -65,16 +65,17 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{ store.se
 export function getFilteredList(){
   let list = store.recipes.filter(r => store.activeCategory==='Все' || (r.category||'Без категории')===store.activeCategory);
   if(store.activeDifficulty) list = list.filter(r => (r.difficulty||'Легко') === store.activeDifficulty);
+  if(store.activeTag) list = list.filter(r => (r.tags||[]).includes(store.activeTag));
   if(store.favOnly) list = list.filter(r => r.favorite);
   if(store.queueOnly) list = list.filter(r => r.willCook);
   if(store.searchQuery){
     const q = store.searchQuery.toLowerCase();
-    list = list.filter(r => r.title.toLowerCase().includes(q) || (r.ingredients||[]).some(i => (i.name||'').toLowerCase().includes(q)));
+    list = list.filter(r => (r.title||'').toLowerCase().includes(q) || (r.ingredients||[]).some(i => (i.name||'').toLowerCase().includes(q)));
   }
   const sorted = [...list];
   if(store.sortMode==='new') sorted.sort((a,b)=> new Date(b.dateAdded||0) - new Date(a.dateAdded||0));
   else if(store.sortMode==='old') sorted.sort((a,b)=> new Date(a.dateAdded||0) - new Date(b.dateAdded||0));
-  else if(store.sortMode==='az') sorted.sort((a,b)=> a.title.localeCompare(b.title,'ru'));
+  else if(store.sortMode==='az') sorted.sort((a,b)=> (a.title||'').localeCompare(b.title||'','ru'));
   else if(store.sortMode==='time') sorted.sort((a,b)=> (a.cookTime||9999) - (b.cookTime||9999));
   return sorted;
 }
@@ -86,6 +87,7 @@ export function render(){
   document.getElementById('shopModeBtn').classList.toggle('active', store.shopMode);
   document.getElementById('shopModeBtn').textContent = `🛒 Список покупок${store.selectedForShop.size?` (${store.selectedForShop.size})`:''}`;
   viewTitle.textContent = store.favOnly ? '⭐ Избранное' : (store.queueOnly ? '📌 Буду готовить' : (store.activeCategory === 'Все' ? 'Все рецепты' : store.activeCategory));
+  if(store.activeTag) viewTitle.textContent += ` · #${store.activeTag}`;
   const list = getFilteredList();
 
   if(!store.hasLoadedOnce){
@@ -115,11 +117,18 @@ export function render(){
           ${r.servings ? `<span>👥 ${r.servings}</span>` : ''}
           ${r.difficulty ? `<span class="badge ${r.difficulty}">${r.difficulty}</span>` : ''}
         </div>
+        ${(r.tags||[]).length ? `<div class="card-tags">${r.tags.map(t=>`<span class="tag-chip ${store.activeTag===t?'active':''}" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
       </div>
     </div>`).join('');
 
   grid.querySelectorAll('.recipe-card').forEach(el=>{
     el.addEventListener('click', (e)=>{
+      const tagChip = e.target.closest('.tag-chip');
+      if(tagChip){
+        store.activeTag = store.activeTag === tagChip.dataset.tag ? null : tagChip.dataset.tag;
+        render();
+        return;
+      }
       if(store.shopMode){
         const id = el.dataset.id;
         if(store.selectedForShop.has(id)) store.selectedForShop.delete(id); else store.selectedForShop.add(id);

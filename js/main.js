@@ -5,6 +5,8 @@ import { store } from './store.js';
 import { isConfigured, auth, recipesCol } from './firebase-init.js';
 import { seedIfNeeded } from './seed.js';
 import { render, loadingLabel } from './render-list.js';
+import { openFromHashIfPresent } from './detail.js';
+import { checkUsageWarning } from './backup.js';
 
 // Модули ниже нужны, чтобы выполнился их код навешивания обработчиков на кнопки —
 // сами функции напрямую в этом файле не используются.
@@ -14,8 +16,11 @@ import './cooking-mode.js';
 import './shopping-list.js';
 import './gallery-reviews-feed.js';
 import './bottom-nav.js';
-import './import-recipe.js';
 import './admin-auth.js';
+import './import-recipe.js';
+import './planner.js';
+import './theme.js';
+import './backup.js';
 
 import { signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -42,12 +47,14 @@ if (isConfigured) {
     if (!user) { signInAnonymously(auth).catch(err => { loadingLabel.textContent = 'ошибка входа'; console.error(err); }); return; }
     seedIfNeeded().catch(()=>{});
     const q = query(recipesCol, orderBy('dateAdded', 'asc'));
+    let firstLoad = true;
     onSnapshot(q, (snapshot) => {
       store.recipes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       store.hasLoadedOnce = true;
       loadingLabel.textContent = store.recipes.length + (store.recipes.length===1?' рецепт':' рецептов');
       setSyncStatus(true);
       render();
+      if(firstLoad){ firstLoad = false; openFromHashIfPresent(); checkUsageWarning(); }
     }, (err) => { console.error(err); setSyncStatus(false); store.hasLoadedOnce = true; loadingLabel.textContent = 'ошибка загрузки'; render(); });
   });
 } else {

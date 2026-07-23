@@ -12,6 +12,7 @@ import { startCookMode } from './cooking-mode.js';
 import { openForm } from './form.js';
 import { persistShopCart } from './shopping-list.js';
 import { setBottomTab } from './bottom-nav.js';
+import { render } from './render-list.js';
 
 // ---------- Лайтбокс ----------
 export function openLightbox(photos, startIdx){
@@ -31,16 +32,38 @@ document.getElementById('lightboxPrev').addEventListener('click', ()=> showLight
 document.getElementById('lightboxNext').addEventListener('click', ()=> showLightboxPhoto(store.lightboxIndex+1));
 document.getElementById('lightboxOverlay').addEventListener('click', (e)=>{ if(e.target.id==='lightboxOverlay') closeLightbox(); });
 
+// Сжимаем фото перед загрузкой: с телефона обычно прилетают снимки на 3-5 МБ,
+// а нам для карточки рецепта достаточно 1200px по длинной стороне.
+function compressImage(file, maxSize, quality){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = ()=>{
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if(width > height && width > maxSize){ height = Math.round(height * maxSize/width); width = maxSize; }
+      else if(height > maxSize){ width = Math.round(width * maxSize/height); height = maxSize; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob=> resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
 document.getElementById('photoInput').addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files || []);
   if(files.length===0 || !store.currentPhotoUploadRecipeId) return;
   const rid = store.currentPhotoUploadRecipeId;
-  showToast('Загружаю фото…');
+  showToast('Сжимаю и загружаю фото…');
   for(const file of files){
     try{
-      const path = `recipes/${rid}/${Date.now()}-${file.name}`;
+      const compressed = await compressImage(file, 1200, 0.82);
+      const path = `recipes/${rid}/${Date.now()}-photo.jpg`;
       const fileRef = storageRef(storage, path);
-      await uploadBytes(fileRef, file);
+      await uploadBytes(fileRef, compressed, { contentType: 'image/jpeg' });
       const url = await getDownloadURL(fileRef);
       await updateDoc(doc(db,'recipes',rid), { photos: arrayUnion(url) });
     }catch(err){ console.error(err); showToast('Не удалось загрузить фото'); }
@@ -57,7 +80,7 @@ function scaledQty(q, base, target){
   return q * (target/base);
 }
 
-export function openDetail(id){
+export function openDetail(id, skipHashUpdate){
   const r = store.recipes.find(x=>x.id===id);
   if(!r) return;
   store.currentServings = r.servings || null;
@@ -69,10 +92,32 @@ export function openDetail(id){
   setBottomTab('recipes');
   renderDetail(r);
   document.getElementById('detailOverlay').classList.add('open');
+  if(!skipHashUpdate && location.hash !== '#recipe/'+id){
+    history.pushState(null, '', '#recipe/'+id);
+  }
 }
 
-export function closeDetail(){ document.getElementById('detailOverlay').classList.remove('open'); }
+export function closeDetail(){
+  document.getElementById('detailOverlay').classList.remove('open');
+  if(location.hash.startsWith('#recipe/')){
+    history.pushState(null, '', location.pathname + location.search);
+  }
+}
 document.getElementById('detailOverlay').addEventListener('click', (e)=>{ if(e.target.id === 'detailOverlay') closeDetail(); });
+
+// Открытие по прямой ссылке (#recipe/ID) и навигация назад/вперёд в браузере.
+// Важно: используем 'popstate', а не 'hashchange' — history.pushState() не генерирует
+// событие hashchange (оно только для "обычной" навигации по ссылкам), а вот popstate
+// как раз для этого случая и предназначено.
+window.addEventListener('popstate', ()=>{
+  const m = location.hash.match(/^#recipe\/(.+)$/);
+  if(m) openDetail(m[1], true);
+  else if(document.getElementById('detailOverlay').classList.contains('open')) closeDetail();
+});
+export function openFromHashIfPresent(){
+  const m = location.hash.match(/^#recipe\/(.+)$/);
+  if(m) openDetail(m[1], true);
+}
 
 export function renderDetail(r){
   const modal = document.getElementById('detailModal');
@@ -108,11 +153,13 @@ export function renderDetail(r){
       </div>` : ''}
       <span class="avg-rating-pill" id="avgRatingPill" style="display:none;"></span>
     </div>
+    ${(r.tags||[]).length ? `<div class="card-tags" style="margin-bottom:14px;">${r.tags.map(t=>`<span class="tag-chip">#${escapeHtml(t)}</span>`).join('')}</div>` : ''}
     <div class="photo-gallery" id="photoGallery"></div>
     <div class="detail-actions-top">
       <button class="btn btn-cook" id="startCookBtn">👨‍🍳 Режим готовки</button>
       <button class="btn" id="shopAddBtn">${store.selectedForShop.has(r.id)?'✓ В списке покупок':'🛒 В список покупок'}</button>
       <button class="btn" id="shareBtn">📋 Скопировать</button>
+      <button class="btn" id="printBtn">🖨️ Печать</button>
       <button class="btn" id="favDetailBtn">${r.favorite?'★ В избранном':'☆ В избранное'}</button>
       <button class="btn" id="queueDetailBtn">${r.willCook?'📌 В планах':'🗓️ Буду готовить'}</button>
       <button class="btn admin-only" id="editBtn">Изменить</button>
@@ -121,7 +168,7 @@ export function renderDetail(r){
     <div class="detail-section"><h4>Ингредиенты</h4><ul class="ing-list" id="detailIngList">${ingredientsHtml}</ul></div>
     <div class="detail-section"><h4>Приготовление</h4><ol class="steps-list">${stepsHtml}</ol></div>
     ${r.notes ? `<div class="detail-notes">💡 ${escapeHtml(r.notes)}</div>` : ''}
-    <div class="detail-section" style="margin-top:22px;">
+    <div class="detail-section no-print" style="margin-top:22px;">
       <h4>Отзывы</h4>
       <div id="reviewsContainer"><p style="font-size:13px; color:var(--ink-soft);">Загрузка отзывов…</p></div>
       <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);">
@@ -156,6 +203,14 @@ export function renderDetail(r){
     catch(e){ r.willCook = !r.willCook; renderDetail(r); }
   });
   document.getElementById('shareBtn').addEventListener('click', ()=> copyRecipeText(r));
+  document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+  document.querySelectorAll('#detailModal .tag-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      store.activeTag = chip.textContent.replace('#','');
+      closeDetail();
+      render();
+    });
+  });
   document.getElementById('shopAddBtn').addEventListener('click', (e)=>{
     if(store.selectedForShop.has(r.id)) store.selectedForShop.delete(r.id); else store.selectedForShop.add(r.id);
     persistShopCart();

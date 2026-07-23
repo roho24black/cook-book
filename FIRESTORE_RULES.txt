@@ -33,7 +33,8 @@ service cloud.firestore {
         && (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 2000))
         && (!('favorite' in data) || data.favorite is bool)
         && (!('willCook' in data) || data.willCook is bool)
-        && (!('photos' in data) || (data.photos is list && data.photos.size() <= 20));
+        && (!('photos' in data) || (data.photos is list && data.photos.size() <= 20))
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 10));
     }
 
     // ---------- Отзыв: оценка обязана быть числом от 1 до 5 ----------
