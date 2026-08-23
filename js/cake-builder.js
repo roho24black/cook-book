@@ -457,6 +457,13 @@ function summarySub(draft){
 
 function round(v, step){ step = step||10; return Math.max(step, Math.round(v/step)*step); }
 
+// Настоящий рецепт компонента из базы (см. cake-component-seed.js) — если автор его
+// отредактировал или удалил, здесь просто не найдётся, и конструктор тихо откатится
+// на приблизительный расчёт из cake-constants.js.
+function findComponentRecipe(componentId){
+  return store.recipes.find(r=> r.componentId === componentId);
+}
+
 export function computeCakeIngredients(draft){
   const acc = {}; // key "name|unit" -> {name, unit, qty}
   const add = (name, qty, unit)=>{
@@ -470,14 +477,24 @@ export function computeCakeIngredients(draft){
     const kind = findKind(layer.kind);
     const variant = findVariant(kind, layer.variant);
     const k = Math.pow(layer.diameter/20, 2);
-    (kind.doughIngredients||[]).forEach(([name, amt, unit])=> add(name, amt*k, unit));
-    if(variant.extra) add(variant.extra[0], variant.extra[1]*k, variant.extra[2]);
-    if(kind.onceIngredient && !onceAdded.has(kind.id)){ onceAdded.add(kind.id); add(kind.onceIngredient[0], kind.onceIngredient[1], kind.onceIngredient[2]); }
+    const doughRecipe = findComponentRecipe('dough:'+kind.id+':'+variant.id);
+    if(doughRecipe && doughRecipe.ingredients?.length){
+      doughRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
+    } else {
+      (kind.doughIngredients||[]).forEach(([name, amt, unit])=> add(name, amt*k, unit));
+      if(variant.extra) add(variant.extra[0], variant.extra[1]*k, variant.extra[2]);
+      if(kind.onceIngredient && !onceAdded.has(kind.id)){ onceAdded.add(kind.id); add(kind.onceIngredient[0], kind.onceIngredient[1], kind.onceIngredient[2]); }
+    }
 
     const syrup = findSyrup(layer.syrup);
-    if(syrup.ingredient){
-      if(syrup.fixed){ if(!onceAdded.has('syrup-'+syrup.id)){ onceAdded.add('syrup-'+syrup.id); add(syrup.ingredient[0], syrup.ingredient[1], syrup.ingredient[2]); } }
-      else add(syrup.ingredient[0], syrup.ingredient[1]*k, syrup.ingredient[2]);
+    if(syrup.id!=='none'){
+      const syrupRecipe = findComponentRecipe('syrup:'+syrup.id);
+      if(syrupRecipe && syrupRecipe.ingredients?.length){
+        syrupRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
+      } else if(syrup.ingredient){
+        if(syrup.fixed){ if(!onceAdded.has('syrup-'+syrup.id)){ onceAdded.add('syrup-'+syrup.id); add(syrup.ingredient[0], syrup.ingredient[1], syrup.ingredient[2]); } }
+        else add(syrup.ingredient[0], syrup.ingredient[1]*k, syrup.ingredient[2]);
+      }
     }
   });
 
@@ -485,7 +502,12 @@ export function computeCakeIngredients(draft){
     const cream = findCream(creamId);
     const a = draft.layers[i], b = draft.layers[i+1];
     const k = Math.pow(((a.diameter+b.diameter)/2)/20, 2);
-    if(cream.ingredient) add(cream.ingredient[0], cream.ingredient[1]*k, cream.ingredient[2]);
+    const creamRecipe = findComponentRecipe('cream:'+cream.id);
+    if(creamRecipe && creamRecipe.ingredients?.length){
+      creamRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
+    } else if(cream.ingredient){
+      add(cream.ingredient[0], cream.ingredient[1]*k, cream.ingredient[2]);
+    }
   });
 
   const maxD = Math.max(...draft.layers.map(l=>l.diameter));
