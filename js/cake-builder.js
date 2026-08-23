@@ -168,10 +168,18 @@ function renderCakeBuilder(){
   document.getElementById('cakePortions').textContent = '≈ ' + estimatePortions(d) + ' порций';
   document.getElementById('cakeSummarySub').textContent = summarySub(d);
 
+  // ---- быстрый старт (только для нового торта, не при редактировании) ----
+  document.getElementById('cakePresetsRow').innerHTML = !d.id ? `
+    <div class="cake-section-title" style="margin-bottom:8px;">Быстрый старт</div>
+    <div class="cake-chip-row" style="margin-bottom:18px;">
+      ${CAKE_PRESETS.map(p=> `<button type="button" class="cake-chip" data-role="preset" data-value="${p.id}">${p.emoji} ${escapeHtml(p.label)}</button>`).join('')}
+    </div>` : '';
+
   // ---- коржи ----
   const layersHtml = d.layers.map((layer, i)=>{
     const kind = findKind(layer.kind);
     const variant = findVariant(kind, layer.variant);
+    const isFirst = i===0, isLast = i===d.layers.length-1;
     const gapHtml = (i < d.layers.length - 1) ? `
       <div class="cake-gap-row">
         <div class="cake-gap-label">Крем между ${i+1} и ${i+2} коржом${kind.shape==='tartlet' ? ' · заодно начинка тарталетки' : ''}</div>
@@ -181,8 +189,12 @@ function renderCakeBuilder(){
       </div>` : '';
     return `<div class="cake-layer-card">
       <div class="cake-layer-head">
-        <span class="cake-layer-num">Корж ${i+1}${i===0?' · нижний':(i===d.layers.length-1?' · верхний':'')}</span>
-        ${d.layers.length > MIN_LAYERS ? `<button type="button" class="row-remove" data-role="remove-layer" data-idx="${i}">×</button>` : ''}
+        <span class="cake-layer-num">Корж ${i+1}${isFirst?' · нижний':(isLast?' · верхний':'')}</span>
+        <div style="display:flex; gap:4px; align-items:center;">
+          ${!isFirst ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="up" title="Поднять выше">↑</button>` : ''}
+          ${!isLast ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="down" title="Опустить ниже">↓</button>` : ''}
+          ${d.layers.length > MIN_LAYERS ? `<button type="button" class="row-remove" data-role="remove-layer" data-idx="${i}">×</button>` : ''}
+        </div>
       </div>
       <div class="cake-field-label">Диаметр, см</div>
       <div class="cake-chip-row">
