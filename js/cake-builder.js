@@ -327,6 +327,37 @@ document.getElementById('cakeSaveBtn').addEventListener('click', async ()=>{
   closeCakeBuilder();
 });
 
+// ---------- импорт торта от Клода (по образцу import-recipe.js) ----------
+document.getElementById('cakeImportOpenBtn')?.addEventListener('click', ()=>{
+  document.getElementById('cakeImportTextInput').value = '';
+  document.getElementById('cakeImportStatus').textContent = '';
+  document.getElementById('cakeImportOverlay').classList.add('open');
+});
+document.getElementById('cakeImportCloseBtn')?.addEventListener('click', ()=>{
+  document.getElementById('cakeImportOverlay').classList.remove('open');
+});
+document.getElementById('cakeImportOverlay')?.addEventListener('click', (e)=>{
+  if(e.target.id==='cakeImportOverlay') document.getElementById('cakeImportCloseBtn').click();
+});
+document.getElementById('cakeImportTemplateBtn')?.addEventListener('click', ()=>{
+  navigator.clipboard?.writeText(buildCakeTemplate())
+    .then(()=> showToast('Шаблон скопирован — вставь его в другой чат с Клодом'))
+    .catch(()=> showToast('Не удалось скопировать — выдели текст шаблона вручную'));
+});
+document.getElementById('cakeImportParseBtn')?.addEventListener('click', ()=>{
+  const text = document.getElementById('cakeImportTextInput').value.trim();
+  const statusEl = document.getElementById('cakeImportStatus');
+  if(!text){ statusEl.textContent = 'Вставь текст, который прислал Клод.'; return; }
+  const parsed = parseCakeText(text);
+  if(!parsed){
+    statusEl.textContent = 'Не получилось разобрать — нужно минимум 2 строки КОРЖ в точном формате из шаблона.';
+    return;
+  }
+  document.getElementById('cakeImportOverlay').classList.remove('open');
+  openCakeBuilderFromFields(parsed);
+  showToast(`Разобрано: ${parsed.layers.length} ${parsed.layers.length===1?'корж':'коржей'} — проверь и сохрани`);
+});
+
 // ---------- разрез (иллюстрация) ----------
 function slabHtml(width, height, color, speckColor, thin){
   const speck = speckColor ? `background-image:radial-gradient(${speckColor} 1.1px, transparent 1.2px);background-size:8px 8px;` : '';
