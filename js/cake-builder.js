@@ -95,7 +95,7 @@ export function renderCakesList(){
     ${cakes.length ? `<div class="cake-grid">${cardsHtml}</div>` : `<div class="empty-state"><h3>Пока нет тортов</h3><p>Собери первый торт из коржей, крема и декора — увидишь разрез сразу.</p></div>`}
   `;
   wrap.querySelector('#cakeNewBtnInline')?.addEventListener('click', ()=> openCakeBuilder(null));
-  wrap.querySelector('#cakeImportOpenBtn')?.addEventListener('click', ()=> document.getElementById('cakeImportOpenBtn').click());
+  wrap.querySelector('#cakeImportOpenBtn')?.addEventListener('click', openCakeImportOverlay);
   wrap.querySelectorAll('.cake-card').forEach(el=>{
     el.addEventListener('click', ()=>{
       const cake = store.cakes.find(c=>c.id===el.dataset.id);
