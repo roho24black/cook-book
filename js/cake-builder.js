@@ -526,24 +526,36 @@ export function computeCakeIngredients(draft){
 }
 
 // ---------- автогенерация инструкции ----------
+// Приоритет — реальным рецептам компонентов из базы (findComponentRecipe): их шаги
+// вставляются как есть, с пометкой какого коржа/стыка касаются. Если рецепта нет
+// (автор удалил или это кастомный вкус) — используется краткий сгенерированный шаг.
 export function buildVirtualRecipe(draft){
   const steps = [];
-  const seenBake = new Set();
 
   draft.layers.forEach((layer, i)=>{
     const kind = findKind(layer.kind);
     const variant = findVariant(kind, layer.variant);
-    steps.push({
-      text: `Испечь корж ${i+1}: ${kind.label.toLowerCase()}, ${variant.label.toLowerCase()}, Ø${layer.diameter} см. Духовка ${kind.bakeTemp}°C.`,
-      timerMinutes: kind.bakeMinutes
-    });
+    const recipe = findComponentRecipe('dough:'+kind.id+':'+variant.id);
+    const tag = `[Корж ${i+1} · ${kind.label.toLowerCase()} ${variant.label.toLowerCase()}, Ø${layer.diameter} см] `;
+    if(recipe && recipe.steps?.length){
+      recipe.steps.forEach(s=> steps.push({ text: tag + (typeof s==='string'?s:s.text), timerMinutes: typeof s==='object' ? s.timerMinutes : null }));
+    } else {
+      steps.push({ text: `Испечь корж ${i+1}: ${kind.label.toLowerCase()}, ${variant.label.toLowerCase()}, Ø${layer.diameter} см. Духовка ${kind.bakeTemp}°C.`, timerMinutes: kind.bakeMinutes });
+    }
   });
 
   const seenCream = new Set();
   draft.creams.forEach(creamId=>{
     if(seenCream.has(creamId)) return;
     seenCream.add(creamId);
-    steps.push({ text: `Приготовить крем: ${findCream(creamId).label.toLowerCase()}.`, timerMinutes: null });
+    const cream = findCream(creamId);
+    const recipe = findComponentRecipe('cream:'+cream.id);
+    const tag = `[Крем: ${cream.label.toLowerCase()}] `;
+    if(recipe && recipe.steps?.length){
+      recipe.steps.forEach(s=> steps.push({ text: tag + (typeof s==='string'?s:s.text), timerMinutes: typeof s==='object' ? s.timerMinutes : null }));
+    } else {
+      steps.push({ text: `Приготовить крем: ${cream.label.toLowerCase()}.`, timerMinutes: null });
+    }
   });
   if(draft.coatSame===false){
     const coat = findCoat(draft.coat);
@@ -556,7 +568,14 @@ export function buildVirtualRecipe(draft){
   draft.layers.forEach(layer=>{
     if(layer.syrup==='none' || seenSyrup.has(layer.syrup)) return;
     seenSyrup.add(layer.syrup);
-    steps.push({ text: `Приготовить пропитку: ${findSyrup(layer.syrup).label.toLowerCase()} сироп.`, timerMinutes: null });
+    const syrup = findSyrup(layer.syrup);
+    const recipe = findComponentRecipe('syrup:'+syrup.id);
+    const tag = `[Пропитка: ${syrup.label.toLowerCase()}] `;
+    if(recipe && recipe.steps?.length){
+      recipe.steps.forEach(s=> steps.push({ text: tag + (typeof s==='string'?s:s.text), timerMinutes: typeof s==='object' ? s.timerMinutes : null }));
+    } else {
+      steps.push({ text: `Приготовить пропитку: ${syrup.label.toLowerCase()} сироп.`, timerMinutes: null });
+    }
   });
 
   draft.layers.forEach((layer, i)=>{
