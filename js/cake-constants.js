@@ -37,13 +37,15 @@ export const CAKE_KINDS = [
     vars:[ { id:'curd', label:'Для чизкейка', c:'#F2E4C0' } ] }
 ];
 
+// ingredient: [название, база_на_один_корж_Ø20, единица]; fixed:true — не масштабируется
+// (добавляется в список один раз, если сироп использован хоть раз)
 export const CAKE_SYRUPS = [
   { id:'none', label:'Без пропитки', c:null },
-  { id:'sugar', label:'Сахарный сироп', c:'#F3E7CB' },
-  { id:'vanilla', label:'Ванильный', c:'#EBD8A6' },
-  { id:'coffee', label:'Кофейный', c:'#6B4A32' },
-  { id:'berry', label:'Ягодный', c:'#A93B54' },
-  { id:'rum', label:'Ромово-коньячный', c:'#9A5A2B' }
+  { id:'sugar', label:'Сахарный сироп', c:'#F3E7CB', ingredient:['Сахар (для сиропа)',50,'г'] },
+  { id:'vanilla', label:'Ванильный', c:'#EBD8A6', ingredient:['Ваниль',1,'стручок'], fixed:true },
+  { id:'coffee', label:'Кофейный', c:'#6B4A32', ingredient:['Кофе молотый',15,'г'] },
+  { id:'berry', label:'Ягодный', c:'#A93B54', ingredient:['Вишня/малина для сиропа',70,'г'] },
+  { id:'rum', label:'Ромово-коньячный', c:'#9A5A2B', ingredient:['Ром',20,'мл'] }
 ];
 
 // ingredient: [название, база_в_г_или_мл] — используется для расчёта списка покупок
