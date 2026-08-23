@@ -76,6 +76,36 @@ export const CAKE_DECORS = [
 
 export const CAKE_STATUSES = { draft:'черновик', planned:'запланирован', cooked:'приготовлен' };
 
+// Пресеты для быстрого старта — заполняют черновик целиком, дальше можно доредактировать
+// любой корж по отдельности (пресет — это просто разумная отправная точка, не жёсткий рецепт).
+export const CAKE_PRESETS = [
+  { id:'honey-classic', emoji:'🍯', label:'Медовик классический',
+    layers:[
+      {kind:'honey',variant:'honey',diameter:18,syrup:'none'},
+      {kind:'honey',variant:'honey',diameter:18,syrup:'none'},
+      {kind:'honey',variant:'honey',diameter:18,syrup:'none'},
+      {kind:'honey',variant:'honey',diameter:18,syrup:'none'}
+    ], creams:['custard','custard','custard'], coatSame:true, coat:'cream', decor:'none' },
+  { id:'velvet-party', emoji:'🎉', label:'Красный бархат на праздник',
+    layers:[
+      {kind:'velvet',variant:'velvet',diameter:20,syrup:'none'},
+      {kind:'velvet',variant:'velvet',diameter:20,syrup:'none'},
+      {kind:'velvet',variant:'velvet',diameter:20,syrup:'none'}
+    ], creams:['cheese','cheese'], coatSame:false, coat:'cream', decor:'berries' },
+  { id:'choco-tower', emoji:'🍫', label:'Шоколадный трёхъярусный',
+    layers:[
+      {kind:'biscuit',variant:'choco',diameter:22,syrup:'coffee'},
+      {kind:'biscuit',variant:'choco',diameter:22,syrup:'coffee'},
+      {kind:'biscuit',variant:'choco',diameter:22,syrup:'coffee'}
+    ], creams:['ganache','ganache'], coatSame:false, coat:'glaze', decor:'shavings' },
+  { id:'straw-biscuit', emoji:'🍓', label:'Клубничный бисквит',
+    layers:[
+      {kind:'biscuit',variant:'straw',diameter:18,syrup:'berry'},
+      {kind:'biscuit',variant:'straw',diameter:18,syrup:'berry'},
+      {kind:'biscuit',variant:'straw',diameter:18,syrup:'berry'}
+    ], creams:['whipped','whipped'], coatSame:true, coat:'cream', decor:'berries' }
+];
+
 export function findKind(id){ return CAKE_KINDS.find(k=>k.id===id) || CAKE_KINDS[0]; }
 export function findVariant(kind, id){ return kind.vars.find(v=>v.id===id) || kind.vars[0]; }
 export function findSyrup(id){ return CAKE_SYRUPS.find(x=>x.id===id) || CAKE_SYRUPS[0]; }
