@@ -58,6 +58,12 @@ if (isConfigured) {
       render();
       if(firstLoad){ firstLoad = false; openFromHashIfPresent(); checkUsageWarning(); }
     }, (err) => { console.error(err); setSyncStatus(false); store.hasLoadedOnce = true; loadingLabel.textContent = 'ошибка загрузки'; render(); });
+
+    const cq = query(cakesCol, orderBy('dateAdded', 'asc'));
+    onSnapshot(cq, (snapshot) => {
+      store.cakes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCakesList();
+    }, (err) => console.error(err));
   });
 } else {
   loadingLabel.textContent = 'настрой Firebase';

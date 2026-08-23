@@ -9,22 +9,31 @@ export const CAKE_PORTIONS = { 16:'6–8', 18:'8–10', 20:'10–12', 22:'12–1
 // shape: 'slab' — обычный плоский корж на срезе, 'tartlet' — чаша с бортиками (песочное тесто)
 // heightPx: высота ОДНОГО коржа на иллюстрации среза — разная у разных видов теста
 // bakeMinutes/bakeTemp: попадают в автогенерируемую инструкцию как шаг выпечки с таймером
+// doughIngredients: базовые продукты на ОДИН корж этого вида теста диаметром 20 см
+// (масштабируется по площади под фактический диаметр каждого конкретного коржа).
+// vars[].extra: доп. ингредиент только для этого вкуса (какао, клубника и т.п.)
 export const CAKE_KINDS = [
   { id:'biscuit', label:'Бисквит', shape:'slab', heightPx:30, bakeMinutes:35, bakeTemp:180,
+    doughIngredients:[['Мука пшеничная',80,'г'],['Яйца',1.5,'шт'],['Сахар',75,'г']],
     vars:[
       { id:'classic', label:'Классический', c:'#E8C88A' },
-      { id:'choco', label:'Шоколадный', c:'#4A2F22' },
-      { id:'straw', label:'Клубничный', c:'#E5A2AC', speck:'#B8465C' },
-      { id:'carrot', label:'Морковный', c:'#C97B3C', speck:'#8E4A1E' },
-      { id:'lemon', label:'Лимонный', c:'#E8CE6A' }
+      { id:'choco', label:'Шоколадный', c:'#4A2F22', extra:['Какао-порошок',15,'г'] },
+      { id:'straw', label:'Клубничный', c:'#E5A2AC', speck:'#B8465C', extra:['Клубника (пюре)',62.5,'г'] },
+      { id:'carrot', label:'Морковный', c:'#C97B3C', speck:'#8E4A1E', extra:['Морковь',75,'г'] },
+      { id:'lemon', label:'Лимонный', c:'#E8CE6A', extra:['Лимон',0.5,'шт'] }
     ] },
   { id:'honey', label:'Медовик', shape:'slab', heightPx:14, thin:true, bakeMinutes:6, bakeTemp:190,
+    doughIngredients:[['Мука пшеничная',70,'г'],['Мёд',30,'г'],['Яйца',0.5,'шт'],['Масло сливочное',20,'г'],['Сахар',20,'г']],
     vars:[ { id:'honey', label:'Медовые коржи', c:'#C99447' } ] },
   { id:'velvet', label:'Красный бархат', shape:'slab', heightPx:30, bakeMinutes:32, bakeTemp:175,
+    doughIngredients:[['Мука пшеничная',80,'г'],['Яйца',1.5,'шт'],['Сахар',75,'г'],['Кефир',50,'мл']],
+    onceIngredient:['Краситель красный гелевый',1,'фл.'],
     vars:[ { id:'velvet', label:'Red Velvet', c:'#8E2B2B' } ] },
   { id:'short', label:'Песочное тесто', shape:'tartlet', heightPx:34, bakeMinutes:18, bakeTemp:190,
+    doughIngredients:[['Мука пшеничная',60,'г'],['Масло сливочное',40,'г'],['Сахар',20,'г'],['Желток яичный',0.5,'шт']],
     vars:[ { id:'short', label:'Песочные коржи (тарталетка)', c:'#DEB878' } ] },
   { id:'curd', label:'Творожная основа', shape:'slab', heightPx:42, bakeMinutes:50, bakeTemp:150,
+    doughIngredients:[['Творожный сыр',175,'г'],['Печенье песочное (для основы)',50,'г'],['Яйца',0.5,'шт'],['Сахар',30,'г']],
     vars:[ { id:'curd', label:'Для чизкейка', c:'#F2E4C0' } ] }
 ];
 
