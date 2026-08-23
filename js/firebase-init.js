@@ -16,7 +16,7 @@ if (!isConfigured) {
   if (banner) banner.style.display = 'block';
 }
 
-export let db, auth, storage, recipesCol;
+export let db, auth, storage, recipesCol, cakesCol;
 
 if (isConfigured) {
   const app = initializeApp(firebaseConfig);
@@ -24,5 +24,6 @@ if (isConfigured) {
   auth = getAuth(app);
   storage = getStorage(app);
   recipesCol = collection(db, 'recipes');
+  cakesCol = collection(db, 'cakes');
   try { await enableIndexedDbPersistence(db); } catch (e) { /* несколько вкладок открыто — не критично */ }
 }

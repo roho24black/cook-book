@@ -2,11 +2,12 @@
 // и запускает само приложение: статус синхронизации, service worker, авторизация, подписка на рецепты.
 
 import { store } from './store.js';
-import { isConfigured, auth, recipesCol } from './firebase-init.js';
+import { isConfigured, auth, recipesCol, cakesCol } from './firebase-init.js';
 import { seedIfNeeded } from './seed.js';
 import { render, loadingLabel } from './render-list.js';
 import { openFromHashIfPresent } from './detail.js';
 import { checkUsageWarning } from './backup.js';
+import { renderCakesList } from './cake-builder.js';
 
 // Модули ниже нужны, чтобы выполнился их код навешивания обработчиков на кнопки —
 // сами функции напрямую в этом файле не используются.
@@ -21,6 +22,7 @@ import './import-recipe.js';
 import './planner.js';
 import './theme.js';
 import './backup.js';
+import './cake-builder.js';
 
 import { signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
