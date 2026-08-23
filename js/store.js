@@ -45,4 +45,8 @@ export const store = {
   cookTimerSeconds: 0,
   cookTimerRunning: false,
   wakeLock: null,
+
+  // конструктор торта
+  cakes: [],
+  cakeDraft: null, // текущий собираемый/редактируемый торт, см. cake-builder.js
 };
