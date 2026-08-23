@@ -90,10 +90,12 @@ export function renderCakesList(){
   wrap.innerHTML = `
     <div class="planner-actions" style="margin-bottom:16px;">
       <button class="btn btn-primary" id="cakeNewBtnInline">🎂 Собрать новый торт</button>
+      <button class="btn" id="cakeImportOpenBtn" style="background:var(--sage); border-color:var(--sage); color:#F5EEDD;">📋 Импорт от Клода</button>
     </div>
     ${cakes.length ? `<div class="cake-grid">${cardsHtml}</div>` : `<div class="empty-state"><h3>Пока нет тортов</h3><p>Собери первый торт из коржей, крема и декора — увидишь разрез сразу.</p></div>`}
   `;
   wrap.querySelector('#cakeNewBtnInline')?.addEventListener('click', ()=> openCakeBuilder(null));
+  wrap.querySelector('#cakeImportOpenBtn')?.addEventListener('click', ()=> document.getElementById('cakeImportOpenBtn').click());
   wrap.querySelectorAll('.cake-card').forEach(el=>{
     el.addEventListener('click', ()=>{
       const cake = store.cakes.find(c=>c.id===el.dataset.id);
