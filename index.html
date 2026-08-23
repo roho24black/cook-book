@@ -471,6 +471,24 @@
   </div>
 </div>
 
+<div class="overlay" id="cakeImportOverlay">
+  <div class="modal" style="max-width:560px;">
+    <button class="modal-close" id="cakeImportCloseBtn">&times;</button>
+    <p class="form-title">📋 Импорт торта от Клода</p>
+    <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5;">
+      Скопируй шаблон, опиши в другом чате с Клодом идею торта — сколько коржей, вкусы, повод.
+      Ответ целиком вставь сюда: формат заранее известный, поэтому конструктор разберёт его без ошибок.
+    </p>
+    <button class="btn btn-primary" id="cakeImportTemplateBtn" style="width:100%; justify-content:center; margin-bottom:16px;">📎 Скопировать шаблон-инструкцию</button>
+    <div class="field">
+      <label>Ответ от Клода</label>
+      <textarea id="cakeImportTextInput" rows="10" placeholder="Вставь сюда весь ответ целиком, как прислал Клод"></textarea>
+    </div>
+    <button class="btn btn-primary" id="cakeImportParseBtn">Разобрать и открыть конструктор</button>
+    <div id="cakeImportStatus" style="margin-top:12px; font-size:13px; color:var(--ink-soft);"></div>
+  </div>
+</div>
+
 <div class="overlay" id="formOverlay">
   <div class="modal" style="max-width:720px;">
     <button class="modal-close" id="formCloseBtn">&times;</button>
