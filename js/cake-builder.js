@@ -25,6 +25,7 @@ function defaultDraft(){
     id: null,
     title: '',
     occasion: '',
+    description: '',
     date: todayISO(),
     status: 'draft',
     layers: [
