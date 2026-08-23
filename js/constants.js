@@ -9,7 +9,7 @@ export const CATEGORY_GRADIENT = {
   "Выпечка":"linear-gradient(135deg,#E3B673,#C68A2E)","Напитки":"linear-gradient(135deg,#8E9FBE,#586B7A)",
   "Завтраки":"linear-gradient(135deg,#EAC46A,#C68A2E)","Закуски":"linear-gradient(135deg,#C98B6B,#7A2E2E)",
   "Соусы":"linear-gradient(135deg,#A8896B,#5C5342)","Без категории":"linear-gradient(135deg,#B8A788,#5C5342)",
-  "Для торта":"linear-gradient(135deg,#D8A6C9,#7A2E2E)"
+  "Для торта":"linear-gradient(135deg,#D8A6C9,#7A2E2E)","Торты":"linear-gradient(135deg,#D8A6C9,#7A2E2E)"
 };
 
 export const UNITS = ["г","кг","мл","л","ст.л.","ч.л.","шт","по вкусу","щепотка"];

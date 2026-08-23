@@ -602,16 +602,20 @@ export function buildVirtualRecipe(draft){
   steps.push({ text: 'Убрать торт в холодильник минимум на 3–4 часа перед подачей — так коржи и крем схватятся.', timerMinutes: null });
 
   const ingredients = computeCakeIngredients(draft).map(i=> ({ qty: i.qty, unit: i.unit, name: i.name }));
+  const cookTime = steps.reduce((sum,s)=> sum + (s.timerMinutes||0), 0) + 30; // +30 мин на сборку/промазку
+  const portionsNums = (estimatePortions(draft).match(/\d+/g)||[]).map(Number);
+  const servings = portionsNums.length ? Math.round(portionsNums.reduce((a,b)=>a+b,0)/portionsNums.length) : null;
 
   return {
     id: 'cake-' + (draft.id || 'draft'),
     title: draft.title || summaryTitle(draft),
     category: 'Торты',
-    servings: null,
-    cookTime: null,
-    difficulty: 'Средне',
+    servings,
+    cookTime,
+    difficulty: draft.layers.length >= 4 ? 'Сложно' : 'Средне',
     ingredients,
     steps,
-    notes: draft.occasion ? `Повод: ${draft.occasion}` : ''
+    notes: draft.occasion ? `Повод: ${draft.occasion}` : '',
+    tags: ['торт']
   };
 }
