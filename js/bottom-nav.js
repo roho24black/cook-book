@@ -9,41 +9,39 @@ export function setBottomTab(tab){
   document.querySelectorAll('.bottom-nav button').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
 }
 
-export function openReferenceTab(){
+function closeSecondaryOverlays(){
+  document.getElementById('referenceOverlay').classList.remove('open');
   document.getElementById('shopOverlay').classList.remove('open');
   document.getElementById('galleryOverlay').classList.remove('open');
   document.getElementById('reviewsFeedOverlay').classList.remove('open');
+  document.getElementById('cakesOverlay')?.classList.remove('open');
+  document.getElementById('cakeBuilderOverlay')?.classList.remove('open');
+}
+
+export function openReferenceTab(){
+  closeSecondaryOverlays();
   document.getElementById('referenceOverlay').classList.add('open');
   setBottomTab('reference');
 }
 export function openShoppingTab(){
-  document.getElementById('referenceOverlay').classList.remove('open');
-  document.getElementById('galleryOverlay').classList.remove('open');
-  document.getElementById('reviewsFeedOverlay').classList.remove('open');
+  closeSecondaryOverlays();
   openShoppingList();
   setBottomTab('shopping');
 }
 export function openGalleryTab(){
-  document.getElementById('referenceOverlay').classList.remove('open');
-  document.getElementById('shopOverlay').classList.remove('open');
-  document.getElementById('reviewsFeedOverlay').classList.remove('open');
+  closeSecondaryOverlays();
   renderGallery();
   document.getElementById('galleryOverlay').classList.add('open');
   setBottomTab('gallery');
 }
 export function openReviewsFeedTab(){
-  document.getElementById('referenceOverlay').classList.remove('open');
-  document.getElementById('shopOverlay').classList.remove('open');
-  document.getElementById('galleryOverlay').classList.remove('open');
+  closeSecondaryOverlays();
   document.getElementById('reviewsFeedOverlay').classList.add('open');
   setBottomTab('reviews');
   loadReviewsFeed();
 }
 export function goToRecipesTab(){
-  document.getElementById('referenceOverlay').classList.remove('open');
-  document.getElementById('shopOverlay').classList.remove('open');
-  document.getElementById('galleryOverlay').classList.remove('open');
-  document.getElementById('reviewsFeedOverlay').classList.remove('open');
+  closeSecondaryOverlays();
   closeDetail();
   setBottomTab('recipes');
 }
@@ -56,6 +54,7 @@ document.querySelectorAll('.bottom-nav button').forEach(btn=>{
     else if(tab==='shopping') openShoppingTab();
     else if(tab==='gallery') openGalleryTab();
     else if(tab==='reviews') openReviewsFeedTab();
+    else if(tab==='cakes'){ closeSecondaryOverlays(); openCakesTab(); }
   });
 });
 document.getElementById('referenceBtn').addEventListener('click', ()=> openReferenceTab());
@@ -71,6 +70,8 @@ document.addEventListener('keydown', (e)=>{
     else if(document.getElementById('plannerOverlay').classList.contains('open')) document.getElementById('plannerCloseBtn').click();
     else if(document.getElementById('reviewsFeedOverlay').classList.contains('open')) document.getElementById('reviewsFeedCloseBtn').click();
     else if(document.getElementById('referenceOverlay').classList.contains('open')) document.getElementById('referenceCloseBtn').click();
+    else if(document.getElementById('cakeBuilderOverlay')?.classList.contains('open')) document.getElementById('cakeBuilderCloseBtn').click();
+    else if(document.getElementById('cakesOverlay')?.classList.contains('open')) document.getElementById('cakesCloseBtn').click();
     else if(document.getElementById('cookOverlay').classList.contains('open')) stopCookMode();
     else if(document.getElementById('confirmOverlay').classList.contains('open')) document.getElementById('confirmCancelBtn').click();
     else if(document.getElementById('shopOverlay').classList.contains('open')) document.getElementById('shopCloseBtn').click();

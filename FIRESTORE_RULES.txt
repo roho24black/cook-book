@@ -74,5 +74,18 @@ service cloud.firestore {
     match /meta/{document} {
       allow read, write: if request.auth != null;
     }
+
+    // ---------- Конструктор торта: полностью в ведении автора (создание/правка/удаление) ----------
+    function isValidCake(data) {
+      return data.layers is list && data.layers.size() >= 2 && data.layers.size() <= 6
+        && data.creams is list
+        && (!('title' in data) || data.title is string)
+        && (!('occasion' in data) || data.occasion is string);
+    }
+    match /cakes/{cakeId} {
+      allow read: if request.auth != null;
+      allow create, update: if isAdmin() && isValidCake(request.resource.data);
+      allow delete: if isAdmin();
+    }
   }
 }
