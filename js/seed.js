@@ -1,5 +1,6 @@
 import { seedRecipes } from '../recipes-seed.js';
 import { seedRecipesV2 } from '../recipes-seed-v2.js';
+import { cakeComponentSeed } from './cake-component-seed.js';
 import { db, recipesCol } from './firebase-init.js';
 import {
   doc, getDoc, setDoc, writeBatch
@@ -27,4 +28,7 @@ async function seedBatch(batchRecipes, flagField){
 export async function seedIfNeeded(){
   await seedBatch(seedRecipes, 'seeded');
   await seedBatch(seedRecipesV2, 'seededV2');
+  // Рецепты компонентов торта (коржи/крема/пропитки) — пишутся так же, как обычные рецепты,
+  // поэтому проходят только когда сидит автор (правила Firestore разрешают create только isAdmin()).
+  await seedBatch(cakeComponentSeed, 'seededCakeComponents');
 }
