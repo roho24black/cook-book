@@ -69,6 +69,7 @@
   #importBtn:hover{ background:#465e3d; }
   .admin-login-link:hover{ opacity:1; text-decoration:underline; }
   body:not(.is-admin) .admin-only{ display:none !important; }
+  body.is-admin .guest-only{ display:none !important; }
   .main{ flex:1; padding:28px 36px 96px; max-width:1200px; min-width:0; }
   .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
   .view-title{ font-family:'Fraunces',serif; font-weight:700; font-size:27px; margin:0; color:var(--ink); }
@@ -676,7 +677,7 @@
         <button class="btn btn-primary admin-only" id="cakeSaveBtn">Сохранить торт</button>
       </div>
     </div>
-    <p class="cake-admin-hint admin-only-hide" style="display:none;">Войди как автор (🔒 внизу списка рецептов), чтобы сохранять торты.</p>
+    <p class="cake-admin-hint guest-only">Войди как автор (🔒 внизу списка рецептов), чтобы сохранять торты.</p>
   </div>
 </div>
 
