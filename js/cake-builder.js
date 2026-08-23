@@ -330,11 +330,13 @@ document.getElementById('cakeSaveBtn').addEventListener('click', async ()=>{
 });
 
 // ---------- импорт торта от Клода (по образцу import-recipe.js) ----------
-document.getElementById('cakeImportOpenBtn')?.addEventListener('click', ()=>{
+// Кнопка-триггер #cakeImportOpenBtn перерисовывается вместе со списком тортов (renderCakesList),
+// поэтому слушатель на неё вешается там же при каждом рендере, а не один раз здесь.
+function openCakeImportOverlay(){
   document.getElementById('cakeImportTextInput').value = '';
   document.getElementById('cakeImportStatus').textContent = '';
   document.getElementById('cakeImportOverlay').classList.add('open');
-});
+}
 document.getElementById('cakeImportCloseBtn')?.addEventListener('click', ()=>{
   document.getElementById('cakeImportOverlay').classList.remove('open');
 });
