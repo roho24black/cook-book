@@ -623,3 +623,84 @@ export function buildVirtualRecipe(draft){
     tags: ['торт']
   };
 }
+
+// Если автор не написал своё описание торта — собираем короткое сами из состава.
+function generateCakeDescription(draft){
+  const kindsPart = draft.layers.map((l,i)=>{
+    const kind = findKind(l.kind), variant = findVariant(kind, l.variant);
+    return `${variant.label.toLowerCase()} (${kind.label.toLowerCase()}, Ø${l.diameter} см)`;
+  }).join(', ');
+  const creamsPart = Array.from(new Set(draft.creams.map(c=> findCream(c).label.toLowerCase()))).join(', ');
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
+  const decor = findDecor(draft.decor);
+  const diamRange = Array.from(new Set(draft.layers.map(l=>l.diameter))).sort((a,b)=>a-b);
+  const diamText = diamRange.length>1 ? `от Ø${diamRange[0]} до Ø${diamRange[diamRange.length-1]} см (ярусный)` : `Ø${diamRange[0]} см`;
+  return `Торт из ${draft.layers.length} коржей — ${kindsPart}. Между коржами: ${creamsPart}. Снаружи: ${coat.label.toLowerCase()}${decor.id!=='none' ? ', декор — '+decor.label.toLowerCase() : ''}. Диаметр: ${diamText}. Ориентировочный выход — ${estimatePortions(draft)} порций.`;
+}
+
+// ---------- технологическая карта (рисунок + разбор по коржам/кремам + описание) ----------
+export function renderTechCard(draft){
+  const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
+  const ingredients = computeCakeIngredients(draft);
+
+  const layersRows = draft.layers.map((l,i)=>{
+    const kind = findKind(l.kind), variant = findVariant(kind, l.variant), syrup = findSyrup(l.syrup);
+    return `<tr><td>${i+1}</td><td>${escapeHtml(kind.label)} — ${escapeHtml(variant.label)}</td><td>Ø${l.diameter} см</td><td>${escapeHtml(syrup.label)}</td></tr>`;
+  }).join('');
+
+  const creamRows = draft.creams.map((c,i)=>
+    `<tr><td>${i+1} → ${i+2}</td><td>${escapeHtml(findCream(c).label)}</td></tr>`
+  ).join('');
+
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
+  const decor = findDecor(draft.decor);
+
+  const ingList = ingredients.map(i=>
+    `<li><span>${escapeHtml(i.name)}</span><span class="amt">${fmtQty(i.qty)} ${escapeHtml(i.unit)}</span></li>`
+  ).join('');
+
+  document.getElementById('cakeTechCardBody').innerHTML = `
+    <p class="detail-cat">Технологическая карта</p>
+    <h2 class="detail-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
+    <div style="display:flex; justify-content:center; margin:6px 0 18px;">${buildCutSectionHtml(draft, 0.85)}</div>
+    <p style="font-size:13.5px; line-height:1.6; color:var(--ink);">${escapeHtml(description)}</p>
+    <div class="detail-meta-row">
+      <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
+      <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
+      ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
+    </div>
+    <div class="detail-section">
+      <h4>Коржи</h4>
+      <table class="ref-table"><thead><tr><th>№</th><th>Вид и вкус</th><th>Диаметр</th><th>Пропитка</th></tr></thead><tbody>${layersRows}</tbody></table>
+    </div>
+    <div class="detail-section" style="margin-top:18px;">
+      <h4>Крема между коржами</h4>
+      <table class="ref-table"><thead><tr><th>Стык</th><th>Крем</th></tr></thead><tbody>${creamRows}</tbody></table>
+      <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decor.id!=='none' ? ' · декор: '+escapeHtml(decor.label) : ''}</p>
+    </div>
+    <div class="detail-section" style="margin-top:18px;">
+      <h4>Ингредиенты (итого на весь торт)</h4>
+      <ul class="ing-list">${ingList}</ul>
+    </div>
+  `;
+}
+
+document.getElementById('cakeTechCardBtn')?.addEventListener('click', ()=>{
+  renderTechCard(store.cakeDraft);
+  document.getElementById('cakeTechCardOverlay').classList.add('open');
+});
+document.getElementById('cakeTechCardCloseBtn')?.addEventListener('click', ()=>{
+  document.getElementById('cakeTechCardOverlay').classList.remove('open');
+});
+document.getElementById('cakeTechCardOverlay')?.addEventListener('click', (e)=>{
+  if(e.target.id==='cakeTechCardOverlay') document.getElementById('cakeTechCardCloseBtn').click();
+});
+document.getElementById('cakeTechCardPrintBtn')?.addEventListener('click', ()=> window.print());
+
+document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()=>{
+  if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
+  const recipe = buildVirtualRecipe(store.cakeDraft);
+  const { id, ...data } = recipe;
+  await addDoc(recipesCol, { ...data, favorite:false, dateAdded: new Date().toISOString() });
+  showToast('Единый рецепт торта сохранён в «Рецептах»');
+});
