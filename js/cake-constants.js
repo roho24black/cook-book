@@ -1,0 +1,73 @@
+// Справочники для конструктора торта. Отдельный файл от constants.js, чтобы не раздувать
+// общий список категорий рецептов — здесь всё, что касается только тортов.
+
+export const CAKE_DIAMETERS = [16, 18, 20, 22, 24, 26];
+
+// Порции — по диаметру самого широкого коржа (обычно нижнего), см. estimatePortions() в cake-builder.js
+export const CAKE_PORTIONS = { 16:'6–8', 18:'8–10', 20:'10–12', 22:'12–16', 24:'16–20', 26:'20–24' };
+
+// shape: 'slab' — обычный плоский корж на срезе, 'tartlet' — чаша с бортиками (песочное тесто)
+// heightPx: высота ОДНОГО коржа на иллюстрации среза — разная у разных видов теста
+// bakeMinutes/bakeTemp: попадают в автогенерируемую инструкцию как шаг выпечки с таймером
+export const CAKE_KINDS = [
+  { id:'biscuit', label:'Бисквит', shape:'slab', heightPx:30, bakeMinutes:35, bakeTemp:180,
+    vars:[
+      { id:'classic', label:'Классический', c:'#E8C88A' },
+      { id:'choco', label:'Шоколадный', c:'#4A2F22' },
+      { id:'straw', label:'Клубничный', c:'#E5A2AC', speck:'#B8465C' },
+      { id:'carrot', label:'Морковный', c:'#C97B3C', speck:'#8E4A1E' },
+      { id:'lemon', label:'Лимонный', c:'#E8CE6A' }
+    ] },
+  { id:'honey', label:'Медовик', shape:'slab', heightPx:14, thin:true, bakeMinutes:6, bakeTemp:190,
+    vars:[ { id:'honey', label:'Медовые коржи', c:'#C99447' } ] },
+  { id:'velvet', label:'Красный бархат', shape:'slab', heightPx:30, bakeMinutes:32, bakeTemp:175,
+    vars:[ { id:'velvet', label:'Red Velvet', c:'#8E2B2B' } ] },
+  { id:'short', label:'Песочное тесто', shape:'tartlet', heightPx:34, bakeMinutes:18, bakeTemp:190,
+    vars:[ { id:'short', label:'Песочные коржи (тарталетка)', c:'#DEB878' } ] },
+  { id:'curd', label:'Творожная основа', shape:'slab', heightPx:42, bakeMinutes:50, bakeTemp:150,
+    vars:[ { id:'curd', label:'Для чизкейка', c:'#F2E4C0' } ] }
+];
+
+export const CAKE_SYRUPS = [
+  { id:'none', label:'Без пропитки', c:null },
+  { id:'sugar', label:'Сахарный сироп', c:'#F3E7CB' },
+  { id:'vanilla', label:'Ванильный', c:'#EBD8A6' },
+  { id:'coffee', label:'Кофейный', c:'#6B4A32' },
+  { id:'berry', label:'Ягодный', c:'#A93B54' },
+  { id:'rum', label:'Ромово-коньячный', c:'#9A5A2B' }
+];
+
+// ingredient: [название, база_в_г_или_мл] — используется для расчёта списка покупок
+export const CAKE_CREAMS = [
+  { id:'butter', label:'Масляный крем', c:'#F3E5C6', ingredient:['Масло сливочное', 400, 'г'] },
+  { id:'cheese', label:'Крем-чиз', c:'#FBF6EA', ingredient:['Сливочный сыр', 600, 'г'] },
+  { id:'ganache', label:'Шоколадный ганаш', c:'#5A3520', ingredient:['Шоколад тёмный 55%', 350, 'г'] },
+  { id:'custard', label:'Заварной крем', c:'#F2DFA6', ingredient:['Молоко', 500, 'мл'] },
+  { id:'whipped', label:'Взбитые сливки', c:'#FFFDF8', ingredient:['Сливки 33%', 450, 'мл'] },
+  { id:'curd', label:'Ягодный курд', c:'#C4485F', ingredient:['Ягоды для курда', 350, 'г'] },
+  { id:'yogurt', label:'Йогуртовый мусс', c:'#F1E8DA', ingredient:['Йогурт греческий', 450, 'г'] }
+];
+
+export const CAKE_COATS = [
+  { id:'cream', label:'Гладкий крем', c:'#F1E2C6' },
+  { id:'glaze', label:'Шоколадная глазурь', c:'#3E2418', ingredient:['Шоколад для глазури', 250, 'г'] },
+  { id:'naked', label:'Голый торт', c:null },
+  { id:'fondant', label:'Мастика', c:'#EDE3D6', ingredient:['Мастика', 400, 'г'] }
+];
+
+export const CAKE_DECORS = [
+  { id:'berries', label:'Свежие ягоды', ingredient:['Ягоды свежие', 300, 'г'] },
+  { id:'shavings', label:'Шоколадная стружка', ingredient:['Шоколад для стружки', 100, 'г'] },
+  { id:'sprinkles', label:'Посыпка', ingredient:['Кондитерская посыпка', 50, 'г'] },
+  { id:'caramel', label:'Карамель', ingredient:['Карамель солёная', 150, 'г'] },
+  { id:'none', label:'Без декора' }
+];
+
+export const CAKE_STATUSES = { draft:'черновик', planned:'запланирован', cooked:'приготовлен' };
+
+export function findKind(id){ return CAKE_KINDS.find(k=>k.id===id) || CAKE_KINDS[0]; }
+export function findVariant(kind, id){ return kind.vars.find(v=>v.id===id) || kind.vars[0]; }
+export function findSyrup(id){ return CAKE_SYRUPS.find(x=>x.id===id) || CAKE_SYRUPS[0]; }
+export function findCream(id){ return CAKE_CREAMS.find(x=>x.id===id) || CAKE_CREAMS[0]; }
+export function findCoat(id){ return CAKE_COATS.find(x=>x.id===id) || CAKE_COATS[0]; }
+export function findDecor(id){ return CAKE_DECORS.find(x=>x.id===id) || CAKE_DECORS[0]; }
