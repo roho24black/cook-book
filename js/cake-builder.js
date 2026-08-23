@@ -115,6 +115,7 @@ export function openCakeBuilder(existing){
   store.cakeDraft = existing
     ? JSON.parse(JSON.stringify({
         id: existing.id, title: existing.title||'', occasion: existing.occasion||'',
+        description: existing.description||'',
         date: existing.date || todayISO(), status: existing.status || 'draft',
         layers: existing.layers, creams: existing.creams, coatSame: existing.coatSame,
         coat: existing.coat, decor: existing.decor
