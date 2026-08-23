@@ -319,6 +319,59 @@
   .feed-review-item{ background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; cursor:pointer; }
   .feed-review-item:hover{ border-color:var(--sage); }
   .feed-review-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--ink); margin-bottom:4px; }
+
+  /* ---------- Конструктор торта ---------- */
+  .cake-preview-box{ background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 4px 12px rgba(43,37,25,0.07); padding:14px 16px 12px; margin-bottom:20px; }
+  .cake-cutsection-wrap{ min-height:200px; display:flex; align-items:flex-end; justify-content:center; position:relative; padding-top:8px; }
+  .cake-cutsection{ display:flex; flex-direction:column; align-items:center; }
+  .cake-slab{ flex-shrink:0; box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(0,0,0,.09); }
+  .cake-tartlet{ flex-shrink:0; position:relative; display:flex; align-items:flex-start; justify-content:center; }
+  .cake-tartlet-fill{ position:absolute; top:12%; left:12%; right:12%; bottom:0; border-radius:3px 3px 0 0; }
+  .cake-decor-row{ display:flex; align-items:flex-end; justify-content:center; gap:4px; height:20px; margin-bottom:2px; }
+  .cake-plate{ background:var(--paper-shadow); border-radius:0 0 8px 8px; box-shadow:0 3px 7px rgba(43,37,25,0.14); margin-top:2px; }
+  .cake-width-label{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:6px; }
+  .cake-preview-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:9px; border-top:1px dashed var(--line); }
+  .cake-summary-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--ink); }
+  .cake-portions{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--sage); font-weight:600; }
+  .cake-summary-sub{ font-size:12px; color:var(--ink-soft); margin-top:3px; }
+
+  .field-label-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .cake-section-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); }
+  .cake-layer-count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); }
+  .cake-layer-card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px 14px; margin-bottom:10px; }
+  .cake-layer-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .cake-layer-num{ font-family:'Fraunces',serif; font-weight:600; font-size:14px; color:var(--burgundy-dark); }
+  .cake-field-label{ font-size:10.5px; color:var(--ink-soft); margin:10px 0 6px; text-transform:uppercase; letter-spacing:.05em; }
+  .cake-field-label:first-of-type{ margin-top:0; }
+  .cake-chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .cake-chip{ display:flex; align-items:center; gap:6px; min-height:34px; padding:0 12px; border-radius:999px; font-size:12.5px; font-weight:500; cursor:pointer; background:var(--paper); color:var(--ink); border:1px solid var(--line); transition:all .15s; }
+  .cake-chip.active{ background:var(--burgundy); border-color:var(--burgundy); color:#F5EEDD; font-weight:600; box-shadow:0 3px 8px rgba(92,34,34,.22); }
+  .cake-dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; border:1px solid rgba(51,38,31,.2); }
+  .cake-chip.active .cake-dot{ border-color:rgba(245,238,221,.5); }
+  .cake-gap-row{ margin-top:12px; padding:10px 11px; border-radius:10px; border:1px dashed var(--line); background:rgba(88,107,77,0.06); }
+  .cake-gap-label{ font-size:11px; color:var(--sage); margin-bottom:7px; font-weight:600; }
+  .cake-same-row{ display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px; cursor:pointer; background:var(--card); border:1px solid var(--line); }
+  .cake-same-box{ width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#F5EEDD; border:1px solid var(--line); flex-shrink:0; }
+  .cake-same-box.active{ background:var(--sage); border-color:var(--sage); }
+  .cake-shop-box{ margin-top:18px; padding:13px 14px; border-radius:14px; border:1px dashed rgba(88,107,77,0.4); background:rgba(88,107,77,0.08); }
+  .cake-shop-head{ display:flex; justify-content:space-between; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--sage); }
+  .cake-shop-preview{ font-size:12px; color:#5D6B50; margin-top:6px; line-height:1.5; }
+  .cake-admin-hint{ font-size:11.5px; color:var(--ink-soft); font-style:italic; margin-top:10px; }
+
+  .cake-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; }
+  .cake-card{ display:flex; gap:13px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px; cursor:pointer; box-shadow:0 2px 8px rgba(43,37,25,0.05); transition:transform .15s, box-shadow .15s; }
+  .cake-card:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(43,37,25,0.1); }
+  .cake-card-thumb{ width:74px; height:74px; flex-shrink:0; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; }
+  .cake-card-body{ flex:1; min-width:0; }
+  .cake-card-title{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; color:var(--ink); }
+  .cake-card-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .cake-card-tags{ display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+  .cake-tag{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:999px; }
+
+  @media (max-width:720px){
+    .cake-chip{ min-height:36px; }
+  }
+
   @media print{
     .sidebar, .bottom-nav, .scroll-top-btn, .toast-container, #setupBanner,
     .modal-close, .detail-actions-top, .servings-adjust button, #photoGallery,
