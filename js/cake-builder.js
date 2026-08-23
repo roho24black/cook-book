@@ -5,7 +5,7 @@
 // (см. cooking-mode.js) — конструктор не изобретает свой отдельный проигрыватель шагов.
 
 import { store } from './store.js';
-import { db, cakesCol } from './firebase-init.js';
+import { db, cakesCol, recipesCol } from './firebase-init.js';
 import { addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { escapeHtml, fmtQty, showToast, showConfirm } from './utils.js';
 import { setBottomTab } from './bottom-nav.js';
