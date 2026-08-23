@@ -77,6 +77,7 @@ document.addEventListener('keydown', (e)=>{
     else if(document.getElementById('shopOverlay').classList.contains('open')) document.getElementById('shopCloseBtn').click();
     else if(document.getElementById('formOverlay').classList.contains('open')) document.getElementById('formCloseBtn').click();
     else if(document.getElementById('importOverlay')?.classList.contains('open')) document.getElementById('importCloseBtn').click();
+    else if(document.getElementById('cakeImportOverlay')?.classList.contains('open')) document.getElementById('cakeImportCloseBtn').click();
     else if(document.getElementById('adminLoginOverlay')?.classList.contains('open')) document.getElementById('adminLoginCloseBtn').click();
     else if(document.getElementById('detailOverlay').classList.contains('open')) closeDetail();
     return;
