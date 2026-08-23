@@ -1,0 +1,198 @@
+// Реальные рецепты каждого компонента конструктора торта (коржи, крема, пропитки) —
+// сеются в обычную коллекцию recipes (категория "Для торта"), поэтому их видно, можно
+// редактировать и печатать точно так же, как любой другой рецепт в книге.
+//
+// componentType/componentId — ключ, по которому cake-builder.js находит "настоящий" рецепт
+// компонента вместо приблизительного расчёта из cake-constants.js. Если пользователь удалит
+// такой рецепт или заведёт свой с тем же componentId — конструктор возьмёт версию из базы,
+// это не жёстко зашитые данные, а просто стартовый набор.
+//
+// Количества — на ОДИН корж/стык диаметром 20 см (см. поле componentScale в notes),
+// конструктор сам домножает на (диаметр / 20)².
+
+export const cakeComponentSeed = [
+  // ---------------- коржи ----------------
+  { title:'Бисквит классический (корж Ø20)', category:'Для торта', servings:1, cookTime:45, difficulty:'Легко',
+    componentType:'dough', componentId:'dough:biscuit:classic',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:1,unit:'по вкусу',name:'Ванильный сахар'}],
+    steps:[
+      {text:'Яйца взбить с сахаром в пышную светлую пену (5–7 минут миксером).', timerMinutes:null},
+      {text:'Аккуратно вмешать просеянную муку лопаткой, не сбивая пену.', timerMinutes:null},
+      {text:'Вылить в форму Ø20 см, застеленную бумагой. Выпекать при 180°C.', timerMinutes:35},
+      {text:'Остудить в форме 10 минут, затем на решётке до полного остывания.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см. Для другого диаметра конструктор пересчитает сам.', tags:['для торта'] },
+
+  { title:'Бисквит шоколадный (корж Ø20)', category:'Для торта', servings:1, cookTime:45, difficulty:'Легко',
+    componentType:'dough', componentId:'dough:biscuit:choco',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:15,unit:'г',name:'Какао-порошок'}],
+    steps:[
+      {text:'Яйца взбить с сахаром в пышную пену.', timerMinutes:null},
+      {text:'Муку смешать с какао, просеять и аккуратно вмешать в яичную массу.', timerMinutes:null},
+      {text:'Вылить в форму Ø20 см. Выпекать при 180°C.', timerMinutes:35},
+      {text:'Остудить в форме, затем на решётке.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см.', tags:['для торта'] },
+
+  { title:'Бисквит клубничный (корж Ø20)', category:'Для торта', servings:1, cookTime:45, difficulty:'Средне',
+    componentType:'dough', componentId:'dough:biscuit:straw',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:62.5,unit:'г',name:'Клубника (пюре)'}],
+    steps:[
+      {text:'Клубнику пробить блендером в пюре, отжать лишний сок через сито (иначе тесто расплывётся).', timerMinutes:null},
+      {text:'Яйца взбить с сахаром, вмешать клубничное пюре.', timerMinutes:null},
+      {text:'Аккуратно вмешать просеянную муку. Вылить в форму Ø20 см, выпекать при 180°C.', timerMinutes:35},
+      {text:'Остудить в форме, затем на решётке.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см.', tags:['для торта'] },
+
+  { title:'Бисквит морковный (корж Ø20)', category:'Для торта', servings:1, cookTime:50, difficulty:'Легко',
+    componentType:'dough', componentId:'dough:biscuit:carrot',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:75,unit:'г',name:'Морковь (тёртая)'},{qty:0.5,unit:'ч.л.',name:'Корица'}],
+    steps:[
+      {text:'Морковь натереть на мелкой тёрке.', timerMinutes:null},
+      {text:'Яйца взбить с сахаром, вмешать морковь и корицу.', timerMinutes:null},
+      {text:'Всыпать просеянную муку, аккуратно перемешать. Вылить в форму Ø20 см, выпекать при 180°C.', timerMinutes:35},
+      {text:'Остудить в форме, затем на решётке.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см.', tags:['для торта'] },
+
+  { title:'Бисквит лимонный (корж Ø20)', category:'Для торта', servings:1, cookTime:45, difficulty:'Легко',
+    componentType:'dough', componentId:'dough:biscuit:lemon',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:0.5,unit:'шт',name:'Лимон (цедра и сок)'}],
+    steps:[
+      {text:'С лимона снять цедру, выжать сок.', timerMinutes:null},
+      {text:'Яйца взбить с сахаром, вмешать цедру и сок.', timerMinutes:null},
+      {text:'Всыпать просеянную муку. Вылить в форму Ø20 см, выпекать при 180°C.', timerMinutes:35},
+      {text:'Остудить в форме, затем на решётке.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см.', tags:['для торта'] },
+
+  { title:'Медовые коржи (один корж Ø20)', category:'Для торта', servings:1, cookTime:20, difficulty:'Средне',
+    componentType:'dough', componentId:'dough:honey:honey',
+    ingredients:[{qty:70,unit:'г',name:'Мука пшеничная'},{qty:30,unit:'г',name:'Мёд'},{qty:0.5,unit:'шт',name:'Яйца'},{qty:20,unit:'г',name:'Масло сливочное'},{qty:20,unit:'г',name:'Сахар'},{qty:0.15,unit:'ч.л.',name:'Сода'}],
+    steps:[
+      {text:'Мёд, масло и сахар растопить на водяной бане до однородности, снять с огня.', timerMinutes:null},
+      {text:'Всыпать соду, размешать — масса посветлеет и запенится.', timerMinutes:null},
+      {text:'Вбить яйцо, всыпать муку, быстро замесить мягкое тесто.', timerMinutes:null},
+      {text:'Раскатать тонко, вырезать круг Ø20 см, выпекать при 190°C — корж тонкий, следить, чтобы не подгорел.', timerMinutes:6}
+    ], notes:'Количества — на один тонкий корж Ø20 см (для медовика их обычно 6–8).', tags:['для торта'] },
+
+  { title:'Коржи "Красный бархат" (корж Ø20)', category:'Для торта', servings:1, cookTime:40, difficulty:'Средне',
+    componentType:'dough', componentId:'dough:velvet:velvet',
+    ingredients:[{qty:80,unit:'г',name:'Мука пшеничная'},{qty:1.5,unit:'шт',name:'Яйца'},{qty:75,unit:'г',name:'Сахар'},{qty:50,unit:'мл',name:'Кефир'},{qty:1,unit:'по вкусу',name:'Краситель красный гелевый'},{qty:0.5,unit:'ч.л.',name:'Какао-порошок'}],
+    steps:[
+      {text:'Кефир смешать с красителем и какао до однородного ярко-красного цвета.', timerMinutes:null},
+      {text:'Яйца взбить с сахаром, влить кефирную смесь.', timerMinutes:null},
+      {text:'Всыпать просеянную муку, аккуратно перемешать. Вылить в форму Ø20 см, выпекать при 175°C.', timerMinutes:32},
+      {text:'Остудить в форме, затем на решётке.', timerMinutes:10}
+    ], notes:'Количества — на один корж Ø20 см. Красителя — по инструкции на флаконе.', tags:['для торта'] },
+
+  { title:'Песочные коржи для тарталетки (Ø20)', category:'Для торта', servings:1, cookTime:35, difficulty:'Легко',
+    componentType:'dough', componentId:'dough:short:short',
+    ingredients:[{qty:60,unit:'г',name:'Мука пшеничная'},{qty:40,unit:'г',name:'Масло сливочное холодное'},{qty:20,unit:'г',name:'Сахар'},{qty:0.5,unit:'шт',name:'Желток яичный'},{qty:1,unit:'щепотка',name:'Соль'}],
+    steps:[
+      {text:'Холодное масло порубить с мукой в крошку (руками или блендером).', timerMinutes:null},
+      {text:'Добавить сахар, соль и желток, быстро собрать тесто в шар. Убрать в холодильник.', timerMinutes:30},
+      {text:'Раскатать, выстелить форму Ø20 см с бортиками, наколоть вилкой дно.', timerMinutes:null},
+      {text:'Выпекать при 190°C до золотистого цвета.', timerMinutes:18}
+    ], notes:'Количества — на одну основу-тарталетку Ø20 см.', tags:['для торта'] },
+
+  { title:'Творожная основа для чизкейка (Ø20)', category:'Для торта', servings:1, cookTime:70, difficulty:'Средне',
+    componentType:'dough', componentId:'dough:curd:curd',
+    ingredients:[{qty:175,unit:'г',name:'Творожный сыр'},{qty:50,unit:'г',name:'Печенье песочное (для основы)'},{qty:25,unit:'г',name:'Масло сливочное (для основы)'},{qty:0.5,unit:'шт',name:'Яйца'},{qty:30,unit:'г',name:'Сахар'}],
+    steps:[
+      {text:'Печенье измельчить в крошку, смешать с растопленным маслом, утрамбовать на дно формы Ø20 см.', timerMinutes:null},
+      {text:'Творожный сыр взбить с сахаром до гладкости, вмешать яйцо.', timerMinutes:null},
+      {text:'Вылить на основу, выпекать при 150°C на водяной бане (без резких перепадов температуры — иначе потрескается).', timerMinutes:50},
+      {text:'Остудить в выключенной духовке с приоткрытой дверцей, затем убрать в холодильник на 3–4 часа.', timerMinutes:null}
+    ], notes:'Количества — на один слой Ø20 см.', tags:['для торта'] },
+
+  // ---------------- крема ----------------
+  { title:'Масляный крем (на один стык Ø20)', category:'Для торта', servings:1, cookTime:15, difficulty:'Легко',
+    componentType:'cream', componentId:'cream:butter',
+    ingredients:[{qty:200,unit:'г',name:'Масло сливочное мягкое'},{qty:150,unit:'г',name:'Сахарная пудра'},{qty:30,unit:'мл',name:'Молоко'},{qty:1,unit:'по вкусу',name:'Ванильный экстракт'}],
+    steps:[
+      {text:'Мягкое масло взбить миксером 3–4 минуты до побеления и пышности.', timerMinutes:null},
+      {text:'Добавлять сахарную пудру частями, продолжая взбивать.', timerMinutes:null},
+      {text:'Влить молоко и ваниль, взбить ещё минуту до однородности.', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  { title:'Крем-чиз (на один стык Ø20)', category:'Для торта', servings:1, cookTime:10, difficulty:'Легко',
+    componentType:'cream', componentId:'cream:cheese',
+    ingredients:[{qty:250,unit:'г',name:'Сливочный сыр холодный'},{qty:60,unit:'г',name:'Масло сливочное мягкое'},{qty:50,unit:'г',name:'Сахарная пудра'}],
+    steps:[
+      {text:'Масло взбить до пышности отдельно, затем добавить сахарную пудру.', timerMinutes:null},
+      {text:'Холодный сливочный сыр добавить целиком за один раз и взбить на низкой скорости до однородности (долго не взбивать — крем расслоится).', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см. Сыр должен быть холодным из холодильника.', tags:['для торта'] },
+
+  { title:'Шоколадный ганаш (на один стык Ø20)', category:'Для торта', servings:1, cookTime:15, difficulty:'Легко',
+    componentType:'cream', componentId:'cream:ganache',
+    ingredients:[{qty:150,unit:'г',name:'Шоколад тёмный 55%'},{qty:150,unit:'мл',name:'Сливки 33%'}],
+    steps:[
+      {text:'Шоколад поломать на кусочки, сливки довести до горячего состояния (не кипятить).', timerMinutes:null},
+      {text:'Залить шоколад горячими сливками, оставить на минуту, размешать до гладкости.', timerMinutes:null},
+      {text:'Остудить до комнатной температуры, при необходимости — до нужной густоты в холодильнике.', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  { title:'Заварной крем (на один стык Ø20)', category:'Для торта', servings:1, cookTime:20, difficulty:'Средне',
+    componentType:'cream', componentId:'cream:custard',
+    ingredients:[{qty:250,unit:'мл',name:'Молоко'},{qty:2,unit:'шт',name:'Желток яичный'},{qty:60,unit:'г',name:'Сахар'},{qty:20,unit:'г',name:'Крахмал кукурузный'},{qty:20,unit:'г',name:'Масло сливочное'}],
+    steps:[
+      {text:'Желтки растереть с сахаром и крахмалом до однородности.', timerMinutes:null},
+      {text:'Молоко довести до кипения, тонкой струйкой влить в желтковую смесь, постоянно помешивая.', timerMinutes:null},
+      {text:'Вернуть на плиту, варить на среднем огне до загустения, постоянно помешивая.', timerMinutes:5},
+      {text:'Снять с огня, вмешать масло, накрыть плёнкой "в контакт", остудить.', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  { title:'Взбитые сливки (на один стык Ø20)', category:'Для торта', servings:1, cookTime:5, difficulty:'Легко',
+    componentType:'cream', componentId:'cream:whipped',
+    ingredients:[{qty:250,unit:'мл',name:'Сливки 33% холодные'},{qty:25,unit:'г',name:'Сахарная пудра'}],
+    steps:[
+      {text:'Охладить сливки, венчик и миску перед взбиванием.', timerMinutes:null},
+      {text:'Взбить сливки на средней скорости до мягких пиков, добавить пудру и взбить до устойчивых пиков (не перевзбить — превратится в масло).', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  { title:'Ягодный курд (на один стык Ø20)', category:'Для торта', servings:1, cookTime:20, difficulty:'Средне',
+    componentType:'cream', componentId:'cream:curd',
+    ingredients:[{qty:250,unit:'г',name:'Ягоды (свежие или замороженные)'},{qty:80,unit:'г',name:'Сахар'},{qty:2,unit:'шт',name:'Яйца'},{qty:50,unit:'г',name:'Масло сливочное'}],
+    steps:[
+      {text:'Ягоды пробить блендером и протереть через сито от косточек и кожицы.', timerMinutes:null},
+      {text:'Смешать пюре, сахар и яйца, прогреть на водяной бане до загустения, постоянно помешивая.', timerMinutes:10},
+      {text:'Снять с огня, вмешать масло до однородности, остудить.', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  { title:'Йогуртовый мусс (на один стык Ø20)', category:'Для торта', servings:1, cookTime:15, difficulty:'Средне',
+    componentType:'cream', componentId:'cream:yogurt',
+    ingredients:[{qty:250,unit:'г',name:'Йогурт греческий'},{qty:100,unit:'мл',name:'Сливки 33%'},{qty:40,unit:'г',name:'Сахарная пудра'},{qty:5,unit:'г',name:'Желатин'}],
+    steps:[
+      {text:'Желатин замочить по инструкции на упаковке, распустить (на водяной бане или в микроволновке импульсами).', timerMinutes:null},
+      {text:'Сливки взбить с пудрой до мягких пиков.', timerMinutes:null},
+      {text:'Йогурт смешать с распущенным желатином, аккуратно вмешать взбитые сливки лопаткой.', timerMinutes:null}
+    ], notes:'Количества — на промазку одного стыка Ø20 см.', tags:['для торта'] },
+
+  // ---------------- пропитки ----------------
+  { title:'Сахарный сироп для пропитки (на один корж Ø20)', category:'Для торта', servings:1, cookTime:10, difficulty:'Легко',
+    componentType:'syrup', componentId:'syrup:sugar',
+    ingredients:[{qty:100,unit:'мл',name:'Вода'},{qty:50,unit:'г',name:'Сахар (для сиропа)'}],
+    steps:[{text:'Воду с сахаром довести до кипения, помешивая, пока сахар не растворится.', timerMinutes:3},{text:'Остудить перед использованием.', timerMinutes:null}],
+    notes:'Количество — на пропитку одного коржа Ø20 см.', tags:['для торта'] },
+
+  { title:'Ванильный сироп для пропитки (на один корж Ø20)', category:'Для торта', servings:1, cookTime:10, difficulty:'Легко',
+    componentType:'syrup', componentId:'syrup:vanilla',
+    ingredients:[{qty:100,unit:'мл',name:'Вода'},{qty:50,unit:'г',name:'Сахар'},{qty:1,unit:'стручок',name:'Ваниль'}],
+    steps:[{text:'Стручок ванили разрезать, семена и стручок положить в воду с сахаром, довести до кипения.', timerMinutes:3},{text:'Настоять 10 минут, стручок вынуть, остудить.', timerMinutes:10}],
+    notes:'Количество — на пропитку одного коржа Ø20 см.', tags:['для торта'] },
+
+  { title:'Кофейный сироп для пропитки (на один корж Ø20)', category:'Для торта', servings:1, cookTime:10, difficulty:'Легко',
+    componentType:'syrup', componentId:'syrup:coffee',
+    ingredients:[{qty:100,unit:'мл',name:'Вода'},{qty:40,unit:'г',name:'Сахар'},{qty:15,unit:'г',name:'Кофе молотый'}],
+    steps:[{text:'Сварить крепкий кофе (или заварить кипятком), процедить через сито.', timerMinutes:null},{text:'Растворить сахар в горячем кофе, остудить.', timerMinutes:null}],
+    notes:'Количество — на пропитку одного коржа Ø20 см.', tags:['для торта'] },
+
+  { title:'Ягодный сироп для пропитки (на один корж Ø20)', category:'Для торта', servings:1, cookTime:15, difficulty:'Легко',
+    componentType:'syrup', componentId:'syrup:berry',
+    ingredients:[{qty:70,unit:'г',name:'Вишня/малина для сиропа'},{qty:80,unit:'мл',name:'Вода'},{qty:40,unit:'г',name:'Сахар'}],
+    steps:[{text:'Ягоды с водой и сахаром довести до кипения, проварить 5 минут.', timerMinutes:5},{text:'Процедить через сито, остудить.', timerMinutes:null}],
+    notes:'Количество — на пропитку одного коржа Ø20 см.', tags:['для торта'] },
+
+  { title:'Ромово-коньячный сироп для пропитки (на один корж Ø20)', category:'Для торта', servings:1, cookTime:10, difficulty:'Легко',
+    componentType:'syrup', componentId:'syrup:rum',
+    ingredients:[{qty:80,unit:'мл',name:'Вода'},{qty:50,unit:'г',name:'Сахар'},{qty:20,unit:'мл',name:'Ром'}],
+    steps:[{text:'Воду с сахаром довести до кипения, растворить сахар.', timerMinutes:3},{text:'Остудить, влить ром (для детского/безалкогольного стола — заменить на сахарный сироп).', timerMinutes:null}],
+    notes:'Количество — на пропитку одного коржа Ø20 см.', tags:['для торта'] }
+];
