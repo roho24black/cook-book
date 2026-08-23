@@ -476,6 +476,7 @@
   <button data-tab="gallery"><span class="bn-icon">🖼️</span><span>Галерея</span></button>
   <button data-tab="reviews"><span class="bn-icon">⭐</span><span>Отзывы</span></button>
   <button data-tab="shopping"><span class="bn-icon">🛒</span><span>Покупки</span><span class="bn-badge" id="bnShopBadge" style="display:none;"></span></button>
+  <button data-tab="cakes"><span class="bn-icon">🎂</span><span>Торты</span></button>
 </nav>
 
 <div class="overlay" id="confirmOverlay">
@@ -616,6 +617,66 @@
     </table>
     <p class="ref-note">Значения приблизительные — точность зависит от того, как утрамбован продукт в ложке.</p>
 
+  </div>
+</div>
+
+<div class="cook-overlay tab-page" id="cakesOverlay">
+  <div class="cook-header">
+    <span class="cook-title">🎂 Мои торты</span>
+    <button class="cook-close" id="cakesCloseBtn">&times;</button>
+  </div>
+  <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:820px; margin:0 auto; width:100%; padding:24px 20px 60px;">
+    <div id="cakesList"></div>
+  </div>
+</div>
+
+<div class="cook-overlay tab-page" id="cakeBuilderOverlay">
+  <div class="cook-header">
+    <span class="cook-title">🎂 Конструктор торта</span>
+    <button class="cook-close" id="cakeBuilderCloseBtn">&times;</button>
+  </div>
+  <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:640px; margin:0 auto; width:100%; padding:16px 20px 100px;">
+
+    <div class="cake-preview-box">
+      <div id="cakePreview" class="cake-cutsection-wrap"></div>
+      <div class="cake-width-label" id="cakeWidthLabel"></div>
+      <div class="cake-preview-footer">
+        <div class="cake-summary-title" id="cakeSummaryTitle"></div>
+        <div class="cake-portions" id="cakePortions"></div>
+      </div>
+      <div class="cake-summary-sub" id="cakeSummarySub"></div>
+    </div>
+
+    <div class="field-label-row"><span class="cake-section-title">Коржи</span><span class="cake-layer-count" id="cakeLayerCountLabel"></span></div>
+    <div id="cakeLayersList"></div>
+    <button type="button" class="row-add" id="cakeAddLayerBtn">+ Добавить корж</button>
+
+    <div class="cake-section-title" style="margin-top:18px;">Внешнее покрытие</div>
+    <div class="cake-same-row" id="cakeCoatSameRow"></div>
+    <div class="cake-chip-row" id="cakeCoatChips" style="margin-top:8px;"></div>
+
+    <div class="cake-section-title" style="margin-top:18px;">Декор</div>
+    <div class="cake-chip-row" id="cakeDecorChips"></div>
+
+    <div class="row2" style="margin-top:18px;">
+      <div class="field"><label>Дата</label><input type="date" id="cakeDateInput"></div>
+      <div class="field"><label>Повод</label><input type="text" id="cakeOccasionInput" placeholder="Юбилей, день рождения…"></div>
+    </div>
+
+    <div class="cake-shop-box">
+      <div class="cake-shop-head"><span>Список покупок</span><span id="cakeBuyCount"></span></div>
+      <div class="cake-shop-preview" id="cakeBuyPreview"></div>
+      <button type="button" class="shop-link-btn" id="cakeBuyCopyBtn" style="margin-top:8px;">📋 Скопировать список покупок</button>
+    </div>
+
+    <div class="form-actions" style="justify-content:space-between; margin-top:20px;">
+      <button class="btn btn-danger" id="cakeDeleteBtn" style="display:none;">Удалить</button>
+      <div style="display:flex; gap:9px;">
+        <button class="btn btn-cook" id="cakeCookBtn">👩‍🍳 Инструкция</button>
+        <button class="btn btn-primary admin-only" id="cakeSaveBtn">Сохранить торт</button>
+      </div>
+    </div>
+    <p class="cake-admin-hint admin-only-hide" style="display:none;">Войди как автор (🔒 внизу списка рецептов), чтобы сохранять торты.</p>
   </div>
 </div>
 

@@ -140,10 +140,11 @@ function update(mutator){
   renderCakeBuilder();
 }
 
-function chip({active, label, role, idx, value, dot}){
+function chip({active, label, role, idx, value, dot, dim}){
   const idxAttr = idx!==undefined ? ` data-idx="${idx}"` : '';
   const dotHtml = dot ? `<span class="cake-dot" style="background:${dot}"></span>` : '';
-  return `<button type="button" class="cake-chip ${active?'active':''}" data-role="${role}"${idxAttr} data-value="${escapeHtml(String(value))}">${dotHtml}${escapeHtml(label)}</button>`;
+  const dimAttr = dim ? ' style="opacity:.45"' : '';
+  return `<button type="button" class="cake-chip ${active?'active':''}" data-role="${role}"${idxAttr} data-value="${escapeHtml(String(value))}"${dimAttr}>${dotHtml}${escapeHtml(label)}</button>`;
 }
 
 function renderCakeBuilder(){
@@ -201,11 +202,9 @@ function renderCakeBuilder(){
     <div class="cake-same-box ${d.coatSame?'active':''}">${d.coatSame?'✓':''}</div>
     <div style="flex:1;font-size:13px;color:var(--ink)">Снаружи — тот же крем, что в верхнем стыке</div>
     <div style="font:600 10.5px 'IBM Plex Mono',monospace;color:var(--ink-soft)">${escapeHtml(outerCream.label)}</div>`;
-  document.getElementById('cakeCoatChips').innerHTML = CAKE_COATS.map(c=>{
-    const active = !d.coatSame && d.coat===c.id;
-    const html = chip({active, label:c.label, role:'coat', value:c.id, dot:c.c});
-    return d.coatSame ? html.replace('class="cake-chip', 'style="opacity:.45" class="cake-chip') : html;
-  }).join('');
+  document.getElementById('cakeCoatChips').innerHTML = CAKE_COATS.map(c=>
+    chip({active: !d.coatSame && d.coat===c.id, label:c.label, role:'coat', value:c.id, dot:c.c, dim:d.coatSame})
+  ).join('');
 
   // ---- декор ----
   document.getElementById('cakeDecorChips').innerHTML = CAKE_DECORS.map(x=> chip({active: d.decor===x.id, label:x.label, role:'decor', value:x.id})).join('');
