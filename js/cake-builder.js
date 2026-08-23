@@ -11,9 +11,10 @@ import { escapeHtml, fmtQty, showToast, showConfirm } from './utils.js';
 import { setBottomTab } from './bottom-nav.js';
 import { startCookMode } from './cooking-mode.js';
 import {
-  CAKE_DIAMETERS, CAKE_PORTIONS, CAKE_KINDS, CAKE_SYRUPS, CAKE_CREAMS, CAKE_COATS, CAKE_DECORS, CAKE_STATUSES,
+  CAKE_DIAMETERS, CAKE_PORTIONS, CAKE_KINDS, CAKE_SYRUPS, CAKE_CREAMS, CAKE_COATS, CAKE_DECORS, CAKE_STATUSES, CAKE_PRESETS,
   findKind, findVariant, findSyrup, findCream, findCoat, findDecor
 } from './cake-constants.js';
+import { buildCakeTemplate, parseCakeText } from './cake-text-format.js';
 
 const MIN_LAYERS = 2, MAX_LAYERS = 6;
 
@@ -127,6 +128,16 @@ export function openCakeBuilder(existing){
   document.getElementById('cakesOverlay').classList.remove('open');
   document.getElementById('cakeBuilderOverlay').classList.add('open');
   document.getElementById('cakeDeleteBtn').style.display = existing ? 'inline-flex' : 'none';
+  renderCakeBuilder();
+}
+
+// Открыть конструктор сразу с готовым набором полей — пресет или разбор импорта от Клода.
+// Всегда как НОВЫЙ торт (черновик без id), даже если пришло из формы редактирования кнопкой "Импорт".
+export function openCakeBuilderFromFields(fields){
+  store.cakeDraft = { ...defaultDraft(), ...JSON.parse(JSON.stringify(fields)), id: null };
+  document.getElementById('cakesOverlay').classList.remove('open');
+  document.getElementById('cakeBuilderOverlay').classList.add('open');
+  document.getElementById('cakeDeleteBtn').style.display = 'none';
   renderCakeBuilder();
 }
 export function closeCakeBuilder(){
