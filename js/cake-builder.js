@@ -363,10 +363,13 @@ document.getElementById('cakeImportParseBtn')?.addEventListener('click', ()=>{
 });
 
 // ---------- разрез (иллюстрация) ----------
-function slabHtml(width, height, color, speckColor, thin){
+function slabHtml(width, height, color, speckColor, thin, syrupColor){
   const speck = speckColor ? `background-image:radial-gradient(${speckColor} 1.1px, transparent 1.2px);background-size:8px 8px;` : '';
   const thinTexture = thin ? `background-image:repeating-linear-gradient(0deg, rgba(74,47,34,.14) 0, rgba(74,47,34,.14) 1.5px, transparent 1.5px, transparent 5px);` : '';
-  return `<div class="cake-slab" style="width:${width}px;height:${height}px;background:${color};${speck}${thinTexture}"></div>`;
+  // Пропитка рисуется отдельной полосой у верхнего края коржа (а не еле заметным подмесом
+  // в общий цвет) — иначе на срезе её реально не видно, особенно на тёмных коржах.
+  const soak = syrupColor ? `<div class="cake-soak-stripe" style="background:${syrupColor}"></div>` : '';
+  return `<div class="cake-slab" style="width:${width}px;height:${height}px;background:${color};${speck}${thinTexture}position:relative;">${soak}</div>`;
 }
 function tartletHtml(width, height, crustColor, fillColor){
   const rimIn = Math.round(width*0.16);
