@@ -230,6 +230,7 @@ function renderCakeBuilder(){
 
   document.getElementById('cakeDateInput').value = d.date;
   document.getElementById('cakeOccasionInput').value = d.occasion;
+  document.getElementById('cakeDescriptionInput').value = d.description || '';
 
   const ingredients = computeCakeIngredients(d);
   document.getElementById('cakeBuyCount').textContent = ingredients.length + ' позиций';
@@ -281,6 +282,7 @@ document.getElementById('cakeAddLayerBtn').addEventListener('click', ()=> update
 document.getElementById('cakeCoatSameRow').addEventListener('click', ()=> update(dr=> dr.coatSame = !dr.coatSame));
 document.getElementById('cakeDateInput').addEventListener('change', (e)=>{ store.cakeDraft.date = e.target.value; });
 document.getElementById('cakeOccasionInput').addEventListener('input', (e)=>{ store.cakeDraft.occasion = e.target.value; });
+document.getElementById('cakeDescriptionInput').addEventListener('input', (e)=>{ store.cakeDraft.description = e.target.value; });
 
 document.getElementById('cakeBuyCopyBtn').addEventListener('click', ()=>{
   const items = computeCakeIngredients(store.cakeDraft);
@@ -310,7 +312,7 @@ document.getElementById('cakeSaveBtn').addEventListener('click', async ()=>{
   const d = store.cakeDraft;
   const data = {
     title: d.title || summaryTitle(d),
-    occasion: d.occasion, date: d.date, status: d.status || 'planned',
+    occasion: d.occasion, description: d.description||'', date: d.date, status: d.status || 'planned',
     layers: d.layers, creams: d.creams, coatSame: d.coatSame, coat: d.coat, decor: d.decor
   };
   if(d.id){
