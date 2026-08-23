@@ -62,7 +62,6 @@ export function closeCakesTab(){
   setBottomTab('recipes');
 }
 document.getElementById('cakesCloseBtn').addEventListener('click', closeCakesTab);
-document.getElementById('cakeNewBtn').addEventListener('click', ()=> openCakeBuilder(null));
 
 export function renderCakesList(){
   const wrap = document.getElementById('cakesList');
