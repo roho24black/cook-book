@@ -39,14 +39,6 @@ function defaultDraft(){
   };
 }
 
-// ---------- цвет ----------
-function hex2rgb(h){ return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
-function mix(a, b, t){
-  if(!a) return b; if(!b) return a;
-  const A=hex2rgb(a), B=hex2rgb(b);
-  return 'rgb(' + A.map((v,i)=> Math.round(v+(B[i]-v)*t)).join(',') + ')';
-}
-
 // ---------- вкладка "Торты" (список) ----------
 export function openCakesTab(){
   document.getElementById('referenceOverlay').classList.remove('open');
@@ -413,14 +405,11 @@ export function buildCutSectionHtml(draft, scale){
     const syrup = findSyrup(layer.syrup);
     const w = widths[i];
     const h = Math.max(4, Math.round(kind.heightPx * scale));
-    let color = variant.c;
-    if(syrup.c) color = mix(color, syrup.c, syrup.id==='sugar' ? 0.08 : 0.15);
-
     if(kind.shape === 'tartlet'){
       const fillCream = i < draft.creams.length ? findCream(draft.creams[i]) : (draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat));
       pieces.push(tartletHtml(w, h, variant.c, fillCream.c || '#F1E2C6'));
     } else {
-      pieces.push(slabHtml(w, h, color, variant.speck, kind.thin));
+      pieces.push(slabHtml(w, h, variant.c, variant.speck, kind.thin, syrup.c || null));
     }
 
     if(i < n-1 && kind.shape !== 'tartlet'){
