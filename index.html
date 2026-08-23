@@ -746,12 +746,14 @@
       <button type="button" class="shop-link-btn" id="cakeBuyCopyBtn" style="margin-top:8px;">📋 Скопировать список покупок</button>
     </div>
 
-    <div class="form-actions" style="justify-content:space-between; margin-top:20px;">
+    <div class="form-actions" style="justify-content:flex-start; flex-wrap:wrap; margin-top:20px;">
+      <button class="btn" id="cakeTechCardBtn">📋 Техкарта</button>
+      <button class="btn btn-cook" id="cakeCookBtn">👩‍🍳 Инструкция</button>
+      <button class="btn admin-only" id="cakeSaveRecipeBtn">📖 Сохранить как рецепт</button>
+    </div>
+    <div class="form-actions" style="justify-content:space-between; margin-top:10px;">
       <button class="btn btn-danger" id="cakeDeleteBtn" style="display:none;">Удалить</button>
-      <div style="display:flex; gap:9px;">
-        <button class="btn btn-cook" id="cakeCookBtn">👩‍🍳 Инструкция</button>
-        <button class="btn btn-primary admin-only" id="cakeSaveBtn">Сохранить торт</button>
-      </div>
+      <button class="btn btn-primary admin-only" id="cakeSaveBtn">Сохранить торт</button>
     </div>
     <p class="cake-admin-hint guest-only">Войди как автор (🔒 внизу списка рецептов), чтобы сохранять торты.</p>
   </div>
