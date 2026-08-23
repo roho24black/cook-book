@@ -3,6 +3,7 @@ import { closeDetail, closeLightbox, showLightboxPhoto } from './detail.js';
 import { openShoppingList } from './shopping-list.js';
 import { renderGallery, loadReviewsFeed } from './gallery-reviews-feed.js';
 import { stopCookMode } from './cooking-mode.js';
+import { openCakesTab } from './cake-builder.js';
 
 export function setBottomTab(tab){
   document.querySelectorAll('.bottom-nav button').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
