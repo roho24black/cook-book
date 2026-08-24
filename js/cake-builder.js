@@ -219,6 +219,7 @@ function renderCakeBuilder(){
       <div class="cake-chip-row">
         ${kind.vars.map(v=> chip({active: layer.variant===v.id, label:v.label, role:'layer-variant', idx:i, value:v.id, dot:v.c})).join('')}
       </div>
+      ${d.layers.length>=3 ? `<button type="button" class="shop-link-btn" data-role="apply-kind-all" data-idx="${i}" style="margin:2px 0 4px;">↧ Такое же тесто и вкус на все коржи (диаметр и пропитка не тронутся)</button>` : ''}
       <div class="cake-field-label">Пропитка этого коржа</div>
       <div class="cake-chip-row">
         ${CAKE_SYRUPS.map(s=> chip({active: layer.syrup===s.id, label:s.label, role:'layer-syrup', idx:i, value:s.id, dot:s.c})).join('')}
@@ -282,6 +283,14 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     if(dr.layers.length >= MAX_LAYERS) return;
     dr.layers.splice(idx+1, 0, { ...dr.layers[idx] });
     dr.creams.splice(idx, 0, dr.creams[idx] ?? dr.creams[dr.creams.length-1] ?? 'cheese');
+  });
+  else if(role==='apply-cream-all') update(dr=>{
+    const val = dr.creams[idx];
+    dr.creams = dr.creams.map(()=> val);
+  });
+  else if(role==='apply-kind-all') update(dr=>{
+    const { kind, variant } = dr.layers[idx];
+    dr.layers.forEach(l=>{ l.kind = kind; l.variant = variant; });
   });
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
   else if(role==='decor') update(dr=> dr.decor = value);
