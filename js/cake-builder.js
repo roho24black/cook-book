@@ -19,6 +19,11 @@ import { buildCakeTemplate, parseCakeText } from './cake-text-format.js';
 
 const MIN_LAYERS = 2, MAX_LAYERS = 15;
 
+// Какие карточки коржей свёрнуты в компактную строку — чисто UI-состояние конструктора
+// (не часть черновика, не сохраняется), сбрасывается при каждом открытии конструктора.
+// Полезно при большом числе коржей (до 15), чтобы не листать длиннющую форму.
+const collapsedLayers = new Set();
+
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
 function defaultDraft(){
