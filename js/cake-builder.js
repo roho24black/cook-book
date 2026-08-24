@@ -830,6 +830,12 @@ document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
   const recipe = buildVirtualRecipe(store.cakeDraft);
   const { id, ...data } = recipe;
+  // Правила Firestore ограничивают ingredients/steps 60 позициями — у очень навороченного
+  // торта (6 разных коржей + куча разных кремов/пропиток) сгенерированный рецепт теоретически
+  // может это превысить. Обрезаем защитно и предупреждаем, а не даём записи молча упасть.
+  let trimmed = false;
+  if(data.ingredients.length > 60){ data.ingredients = data.ingredients.slice(0,60); trimmed = true; }
+  if(data.steps.length > 60){ data.steps = data.steps.slice(0,60); trimmed = true; }
   await addDoc(recipesCol, { ...data, favorite:false, dateAdded: new Date().toISOString() });
-  showToast('Единый рецепт торта сохранён в «Рецептах»');
+  showToast(trimmed ? 'Рецепт сохранён, но список пришлось обрезать до 60 позиций — очень уж навороченный торт' : 'Единый рецепт торта сохранён в «Рецептах»');
 });
