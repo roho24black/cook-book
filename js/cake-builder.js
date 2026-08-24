@@ -531,6 +531,8 @@ function findComponentRecipe(componentId){
   return store.recipes.find(r=> r.componentId === componentId);
 }
 
+// Плоский слитый список — для "Списка покупок" и сохранённого единого рецепта, где важен
+// только итог. Для наглядного разбора "что на какой корж/крем" см. computeCakeIngredientsBreakdown.
 export function computeCakeIngredients(draft){
   const acc = {}; // key "name|unit" -> {name, unit, qty}
   const add = (name, qty, unit)=>{
@@ -538,54 +540,12 @@ export function computeCakeIngredients(draft){
     if(!acc[key]) acc[key] = { name, unit, qty: 0 };
     acc[key].qty += qty;
   };
-  const onceAdded = new Set();
 
-  draft.layers.forEach(layer=>{
-    const kind = findKind(layer.kind);
-    const variant = findVariant(kind, layer.variant);
-    const k = Math.pow(layer.diameter/20, 2);
-    const doughRecipe = findComponentRecipe('dough:'+kind.id+':'+variant.id);
-    if(doughRecipe && doughRecipe.ingredients?.length){
-      doughRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
-    } else {
-      (kind.doughIngredients||[]).forEach(([name, amt, unit])=> add(name, amt*k, unit));
-      if(variant.extra) add(variant.extra[0], variant.extra[1]*k, variant.extra[2]);
-      if(kind.onceIngredient && !onceAdded.has(kind.id)){ onceAdded.add(kind.id); add(kind.onceIngredient[0], kind.onceIngredient[1], kind.onceIngredient[2]); }
-    }
-
-    const syrup = findSyrup(layer.syrup);
-    if(syrup.id!=='none'){
-      const syrupRecipe = findComponentRecipe('syrup:'+syrup.id);
-      if(syrupRecipe && syrupRecipe.ingredients?.length){
-        syrupRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
-      } else if(syrup.ingredient){
-        if(syrup.fixed){ if(!onceAdded.has('syrup-'+syrup.id)){ onceAdded.add('syrup-'+syrup.id); add(syrup.ingredient[0], syrup.ingredient[1], syrup.ingredient[2]); } }
-        else add(syrup.ingredient[0], syrup.ingredient[1]*k, syrup.ingredient[2]);
-      }
-    }
-  });
-
-  draft.creams.forEach((creamId, i)=>{
-    const cream = findCream(creamId);
-    const a = draft.layers[i], b = draft.layers[i+1];
-    const k = Math.pow(((a.diameter+b.diameter)/2)/20, 2);
-    const creamRecipe = findComponentRecipe('cream:'+cream.id);
-    if(creamRecipe && creamRecipe.ingredients?.length){
-      creamRecipe.ingredients.forEach(i=> add(i.name, (i.qty||0)*k, i.unit));
-    } else if(cream.ingredient){
-      add(cream.ingredient[0], cream.ingredient[1]*k, cream.ingredient[2]);
-    }
-  });
-
-  const maxD = Math.max(...draft.layers.map(l=>l.diameter));
-  const kOuter = Math.pow(maxD/20, 2);
-  const coat = draft.coatSame ? null : findCoat(draft.coat);
-  if(coat?.ingredient) add(coat.ingredient[0], coat.ingredient[1]*kOuter, coat.ingredient[2]);
-
-  const topD = draft.layers[draft.layers.length-1].diameter;
-  const kTop = Math.pow(topD/20, 2);
-  const decor = findDecor(draft.decor);
-  if(decor.ingredient) add(decor.ingredient[0], decor.ingredient[1]*kTop, decor.ingredient[2]);
+  const breakdown = computeCakeIngredientsBreakdown(draft);
+  breakdown.layers.forEach(l=> l.ingredients.forEach(i=> add(i.name, i.qty, i.unit)));
+  breakdown.creamGroups.forEach(c=> c.ingredients.forEach(i=> add(i.name, i.qty, i.unit)));
+  if(breakdown.coat) breakdown.coat.ingredients.forEach(i=> add(i.name, i.qty, i.unit));
+  if(breakdown.decor) breakdown.decor.ingredients.forEach(i=> add(i.name, i.qty, i.unit));
 
   return Object.values(acc)
     .map(i=> ({ name:i.name, unit:i.unit, qty: roundAmt(i.qty, i.unit) }))
