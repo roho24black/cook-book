@@ -110,6 +110,26 @@ export function renderCakesList(){
       if(cake) openCakeBuilder(cake);
     });
   });
+  // Кнопки внутри карточки — не должны открывать редактирование самой карточки
+  wrap.querySelectorAll('[data-role="clone-cake"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const cake = store.cakes.find(c=>c.id===btn.dataset.id);
+      if(!cake) return;
+      openCakeBuilderFromFields({
+        title: '', occasion: '', description: '',
+        layers: cake.layers, creams: cake.creams, coatSame: cake.coatSame, coat: cake.coat, decor: cake.decor
+      });
+      showToast('Собрал копию — поменяй дату и повод под новый случай');
+    });
+  });
+  wrap.querySelectorAll('[data-role="open-recipe"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      goToRecipesTab();
+      openDetail(btn.dataset.recipeId);
+    });
+  });
 }
 
 function fmtDate(iso){
