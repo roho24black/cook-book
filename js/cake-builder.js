@@ -988,7 +988,7 @@ export function renderTechCard(draft){
   const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
   const breakdown = computeCakeIngredientsBreakdown(draft);
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
-  const decor = findDecor(draft.decor);
+  const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
 
   const layerBlocks = breakdown.layers.map(l=> `
     <div class="tc-component tc-component-dough">
