@@ -100,6 +100,7 @@ export function renderCakesList(){
         <div class="cake-card-tags">
           <span class="cake-tag" style="background:${badgeBg};color:${badgeColor}">${c.date ? escapeHtml(fmtDate(c.date))+' · ' : ''}${badge}</span>
           <span class="cake-tag" style="background:rgba(88,107,77,.14);color:var(--sage)">≈${portions}</span>
+          ${c.updatedAt && c.updatedAt.slice(0,10)!==(c.dateAdded||'').slice(0,10) ? `<span class="cake-tag" style="background:rgba(51,38,31,.08);color:var(--ink-soft)">обновлено ${escapeHtml(fmtDate(c.updatedAt.slice(0,10)))}</span>` : ''}
         </div>
         <div class="cake-card-actions">
           <button type="button" class="cake-card-action-btn" data-role="clone-cake" data-id="${c.id}">⧉ Похожий</button>
