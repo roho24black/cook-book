@@ -192,6 +192,7 @@ function renderCakeBuilder(){
         <div style="display:flex; gap:4px; align-items:center;">
           ${!isFirst ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="up" title="Поднять выше">↑</button>` : ''}
           ${!isLast ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="down" title="Опустить ниже">↓</button>` : ''}
+          ${d.layers.length < MAX_LAYERS ? `<button type="button" class="cake-move-btn" data-role="duplicate-layer" data-idx="${i}" title="Продублировать этот корж">⧉</button>` : ''}
           ${d.layers.length > MIN_LAYERS ? `<button type="button" class="row-remove" data-role="remove-layer" data-idx="${i}">×</button>` : ''}
         </div>
       </div>
