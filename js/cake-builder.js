@@ -1248,9 +1248,14 @@ async function renderTechCardCanvas(draft){
   const warn = stabilityWarning(draft);
 
   const items = [];
-  breakdown.layers.forEach(l=> items.push({ badge:String(l.index+1), badgeColor:TC_COLORS.burgundy,
-    head:`Корж ${l.index+1} · ${l.kind.label} — ${l.variant.label}`,
-    sub:`Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+l.syrupLabel : ''}`, ingredients:l.ingredients }));
+  breakdown.layers.forEach(l=>{
+    const isTop = l.index === draft.layers.length-1;
+    const creamAbove = isTop ? null : findCream(draft.creams[l.index] ?? draft.creams[draft.creams.length-1] ?? 'cheese');
+    const topNote = isTop ? `сверху: ${coat.label}` : `крем сверху: ${creamAbove.label}`;
+    items.push({ badge:String(l.index+1), badgeColor:TC_COLORS.burgundy,
+      head:`Корж ${l.index+1} · ${l.kind.label} — ${l.variant.label}`,
+      sub:`Ø${l.diameter} см · ${l.syrupLabel ? 'пропитка: '+l.syrupLabel : 'без пропитки'} · ${topNote}`, ingredients:[] });
+  });
   breakdown.creamGroups.forEach(c=> items.push({ badge:'🥄', badgeColor:TC_COLORS.sage,
     head:`Крем «${c.label}»`, sub:`На стыки ${c.gapsText}`, ingredients:c.ingredients }));
   if(breakdown.coat) items.push({ badge:'🧁', badgeColor:TC_COLORS.mustard, head:`Покрытие: ${breakdown.coat.label}`, sub:'', ingredients:breakdown.coat.ingredients });
