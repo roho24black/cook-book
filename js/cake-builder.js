@@ -857,10 +857,13 @@ export function computeCakeIngredientsBreakdown(draft){
   const coatIngredients = coat?.ingredient ? [{ name:coat.ingredient[0], unit:coat.ingredient[2], qty: roundAmt(coat.ingredient[1]*Math.pow(maxD/20,2), coat.ingredient[2]) }] : [];
 
   const topD = draft.layers[draft.layers.length-1].diameter;
-  const decor = findDecor(draft.decor);
-  const decorIngredients = decor.ingredient ? [{ name:decor.ingredient[0], unit:decor.ingredient[2], qty: roundAmt(decor.ingredient[1]*Math.pow(topD/20,2), decor.ingredient[2]) }] : [];
+  const kTop = Math.pow(topD/20, 2);
+  const decorList = asDecorArray(draft.decor).map(id=>findDecor(id));
+  const decorIngredients = [];
+  decorList.forEach(de=>{ if(de.ingredient) decorIngredients.push({ name:de.ingredient[0], unit:de.ingredient[2], qty: roundAmt(de.ingredient[1]*kTop, de.ingredient[2]) }); });
+  const decorLabel = decorList.map(de=>de.label).join(' + ');
 
-  return { layers, creamGroups, coat: coatIngredients.length ? {label:coat.label, ingredients:coatIngredients} : null, decor: decorIngredients.length ? {label:decor.label, ingredients:decorIngredients} : null };
+  return { layers, creamGroups, coat: coatIngredients.length ? {label:coat.label, ingredients:coatIngredients} : null, decor: decorIngredients.length ? {label:decorLabel, ingredients:decorIngredients} : null };
 }
 
 // ---------- автогенерация инструкции ----------
