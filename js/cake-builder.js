@@ -899,27 +899,34 @@ export function renderTechCard(draft){
   const decor = findDecor(draft.decor);
 
   const layerBlocks = breakdown.layers.map(l=> `
-    <div class="tc-component">
-      <div class="tc-component-head">Корж ${l.index+1} · ${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)} · Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}</div>
+    <div class="tc-component tc-component-dough">
+      <div class="tc-component-head">🍰 Корж ${l.index+1} · ${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)} · Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}</div>
       ${ingListHtml(l.ingredients)}
     </div>`).join('');
 
   const creamBlocks = breakdown.creamGroups.map(c=> `
-    <div class="tc-component">
-      <div class="tc-component-head">Крем «${escapeHtml(c.label)}» — на стыки ${escapeHtml(c.gapsText)} (один замес на все сразу)</div>
+    <div class="tc-component tc-component-cream">
+      <div class="tc-component-head">🥄 Крем «${escapeHtml(c.label)}» — на стыки ${escapeHtml(c.gapsText)} (один замес на все сразу)</div>
       ${ingListHtml(c.ingredients)}
     </div>`).join('');
 
   const extraBlocks = [
-    breakdown.coat ? `<div class="tc-component"><div class="tc-component-head">Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}</div>${ingListHtml(breakdown.coat.ingredients)}</div>` : '',
-    breakdown.decor ? `<div class="tc-component"><div class="tc-component-head">Декор: ${escapeHtml(breakdown.decor.label)}</div>${ingListHtml(breakdown.decor.ingredients)}</div>` : ''
+    breakdown.coat ? `<div class="tc-component tc-component-extra"><div class="tc-component-head">🧁 Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}</div>${ingListHtml(breakdown.coat.ingredients)}</div>` : '',
+    breakdown.decor ? `<div class="tc-component tc-component-extra"><div class="tc-component-head">✨ Декор: ${escapeHtml(breakdown.decor.label)}</div>${ingListHtml(breakdown.decor.ingredients)}</div>` : ''
   ].join('');
 
+  const today = new Date().toLocaleDateString('ru-RU', { day:'2-digit', month:'long', year:'numeric' });
+
   document.getElementById('cakeTechCardBody').innerHTML = `
+    <div class="tc-header">
+      <div>
+        <p class="tc-header-kicker">Технологическая карта</p>
+        <h2 class="tc-header-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
+      </div>
+      <div class="tc-header-date">${escapeHtml(today)}</div>
+    </div>
     <div class="cake-techcard">
       <div class="tc-col-left">
-        <p class="detail-cat">Технологическая карта</p>
-        <h2 class="detail-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
         <div style="display:flex; justify-content:center; margin:6px 0 16px;">${buildCutSectionHtml(draft, 0.85)}</div>
         <p style="font-size:13px; line-height:1.6; color:var(--ink);">${escapeHtml(description)}</p>
         <div class="detail-meta-row">
@@ -938,6 +945,7 @@ export function renderTechCard(draft){
         ${extraBlocks}
       </div>
     </div>
+    <p class="tc-footer">🍰 Собрано в конструкторе «Книги рецептов»</p>
   `;
 }
 
@@ -952,6 +960,77 @@ document.getElementById('cakeTechCardOverlay')?.addEventListener('click', (e)=>{
   if(e.target.id==='cakeTechCardOverlay') document.getElementById('cakeTechCardCloseBtn').click();
 });
 document.getElementById('cakeTechCardPrintBtn')?.addEventListener('click', ()=> window.print());
+
+// ---------- поделиться техкартой ----------
+// window.print() как единственный способ "поделиться" ненадёжен в PWA, установленном
+// на домашний экран iPhone (standalone-режим) — там иногда просто ничего не происходит.
+// Настоящий Web Share API работает и в standalone, поэтому это отдельная кнопка, а не
+// то же самое действие, что печать.
+function techCardText(draft){
+  const breakdown = computeCakeIngredientsBreakdown(draft);
+  const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
+  const lines = [`🎂 ${draft.title || summaryTitle(draft)}`, '', description, '',
+    `Порций: ≈${estimatePortions(draft)} · Коржей: ${draft.layers.length}`, '', '— Коржи —'];
+  breakdown.layers.forEach(l=>{
+    lines.push(`${l.index+1}. ${l.kind.label} — ${l.variant.label}, Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+l.syrupLabel : ''}`);
+    l.ingredients.forEach(i=> lines.push(`   • ${i.name} — ${fmtQty(i.qty)} ${i.unit}`));
+  });
+  lines.push('', '— Крема —');
+  breakdown.creamGroups.forEach(c=>{
+    lines.push(`${c.label} (стыки ${c.gapsText}):`);
+    c.ingredients.forEach(i=> lines.push(`   • ${i.name} — ${fmtQty(i.qty)} ${i.unit}`));
+  });
+  if(breakdown.coat){ lines.push('', `Покрытие: ${breakdown.coat.label}`); breakdown.coat.ingredients.forEach(i=> lines.push(`   • ${i.name} — ${fmtQty(i.qty)} ${i.unit}`)); }
+  if(breakdown.decor){ lines.push('', `Декор: ${breakdown.decor.label}`); breakdown.decor.ingredients.forEach(i=> lines.push(`   • ${i.name} — ${fmtQty(i.qty)} ${i.unit}`)); }
+  lines.push('', 'Собрано в «Книге рецептов»');
+  return lines.join('\n');
+}
+
+function svgStringToPngBlob(svgString){
+  return new Promise((resolve)=>{
+    try{
+      const svgBlob = new Blob([svgString], { type:'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = 3;
+        const w = (img.naturalWidth || 300) * scale, h = (img.naturalHeight || 300) * scale;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#F0E7D4';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(b=> resolve(b), 'image/png');
+      };
+      img.onerror = ()=>{ URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    } catch(e){ resolve(null); }
+  });
+}
+
+async function shareTechCard(draft){
+  const text = techCardText(draft);
+  const title = draft.title || summaryTitle(draft);
+  try{
+    let files = null;
+    if(navigator.canShare){
+      const png = await svgStringToPngBlob(buildCutSectionHtml(draft, 1.4));
+      if(png){
+        const file = new File([png], 'tort.png', { type:'image/png' });
+        if(navigator.canShare({ files:[file] })) files = [file];
+      }
+    }
+    if(!navigator.share) throw new Error('no-share-api');
+    await navigator.share(files ? { title, text, files } : { title, text });
+  } catch(e){
+    if(e && e.name==='AbortError') return; // пользователь сам закрыл окно шаринга — это не ошибка
+    const copied = await navigator.clipboard?.writeText(text).then(()=>true).catch(()=>false);
+    showToast(copied ? 'Поделиться напрямую нельзя в этом браузере — текст техкарты скопирован в буфер' : 'Не получилось ни поделиться, ни скопировать — попробуй кнопку печати');
+  }
+}
+document.getElementById('cakeTechCardShareBtn')?.addEventListener('click', ()=> shareTechCard(store.cakeDraft));
 
 document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()=>{
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
