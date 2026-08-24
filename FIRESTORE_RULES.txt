@@ -77,7 +77,7 @@ service cloud.firestore {
 
     // ---------- Конструктор торта: полностью в ведении автора (создание/правка/удаление) ----------
     function isValidCake(data) {
-      return data.layers is list && data.layers.size() >= 2 && data.layers.size() <= 6
+      return data.layers is list && data.layers.size() >= 2 && data.layers.size() <= 15
         && data.creams is list
         && (!('title' in data) || data.title is string)
         && (!('occasion' in data) || data.occasion is string);
