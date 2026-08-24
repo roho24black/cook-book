@@ -3,7 +3,7 @@
 
 import { store } from './store.js';
 import { isConfigured, auth, recipesCol, cakesCol } from './firebase-init.js';
-import { seedIfNeeded } from './seed.js';
+import { seedIfNeeded, seedMissingCakeComponents } from './seed.js';
 import { render, loadingLabel } from './render-list.js';
 import { openFromHashIfPresent } from './detail.js';
 import { checkUsageWarning } from './backup.js';
@@ -56,7 +56,14 @@ if (isConfigured) {
       loadingLabel.textContent = store.recipes.length + (store.recipes.length===1?' рецепт':' рецептов');
       setSyncStatus(true);
       render();
-      if(firstLoad){ firstLoad = false; openFromHashIfPresent(); checkUsageWarning(); }
+      if(firstLoad){
+        firstLoad = false;
+        openFromHashIfPresent();
+        checkUsageWarning();
+        // Досеиваем недостающие рецепты компонентов торта уже загруженным списком —
+        // см. комментарий в seed.js про гонку с отдельным getDocs() сразу после входа.
+        seedMissingCakeComponents(store.recipes).catch(()=>{});
+      }
     }, (err) => { console.error(err); setSyncStatus(false); store.hasLoadedOnce = true; loadingLabel.textContent = 'ошибка загрузки'; render(); });
 
     const cq = query(cakesCol, orderBy('dateAdded', 'asc'));
