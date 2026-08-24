@@ -93,8 +93,9 @@ export function renderCakesList(){
     const badge = CAKE_STATUSES[c.status] || 'черновик';
     const badgeBg = c.status==='cooked' ? 'rgba(198,138,46,.16)' : c.status==='planned' ? 'rgba(122,46,46,.1)' : 'rgba(51,38,31,.08)';
     const badgeColor = c.status==='cooked' ? 'var(--mustard)' : c.status==='planned' ? 'var(--burgundy)' : 'var(--ink-soft)';
+    const cookedPhoto = (c.status==='cooked' && c.photos && c.photos.length) ? c.photos[0] : null;
     return `<div class="cake-card" data-id="${c.id}">
-      <div class="cake-card-thumb">${buildCutSectionHtml(c, 0.34)}</div>
+      <div class="cake-card-thumb">${cookedPhoto ? `<img src="${escapeHtml(cookedPhoto)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">` : buildCutSectionHtml(c, 0.34)}</div>
       <div class="cake-card-body">
         <div class="cake-card-title">${escapeHtml(summaryTitle(c))}</div>
         <div class="cake-card-sub">Ø${widest} см · ${escapeHtml(findCream(c.creams[0]||'cheese').label.toLowerCase())} · ${escapeHtml(asDecorArray(c.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ') || 'без декора')}</div>
