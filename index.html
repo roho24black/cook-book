@@ -370,6 +370,14 @@
     .cake-chip{ min-height:36px; }
   }
 
+  /* ---------- Технологическая карта ---------- */
+  .cake-techcard{ display:grid; grid-template-columns:1fr; gap:22px; }
+  .tc-col-heading{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--burgundy-dark); margin:18px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .tc-col-heading:first-child{ margin-top:0; }
+  .tc-component{ margin-bottom:14px; padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:rgba(122,46,46,0.04); }
+  .tc-component-head{ font-size:12px; font-weight:700; color:var(--sage); margin-bottom:6px; line-height:1.4; }
+  .tc-component .ing-list li{ padding:4px 2px; font-size:12.5px; }
+
   @media print{
     .sidebar, .bottom-nav, .scroll-top-btn, .toast-container, #setupBanner,
     .modal-close, .detail-actions-top, .servings-adjust button, #photoGallery,
@@ -378,6 +386,10 @@
     .overlay{ position:static; background:none; padding:0; opacity:1; visibility:visible; }
     .modal{ box-shadow:none; max-width:100%; }
     .detail-title{ padding-right:0; }
+    @page{ size:A4 landscape; margin:12mm; }
+    #cakeTechCardOverlay .modal{ max-width:none; padding:0; }
+    #cakeTechCardOverlay .cake-techcard{ grid-template-columns:1fr 1fr; gap:26px; align-items:start; }
+    #cakeTechCardOverlay .tc-component{ break-inside:avoid; background:none; border-color:#ccc; }
   }
 </style>
 </head>
