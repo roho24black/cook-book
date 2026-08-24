@@ -249,7 +249,8 @@ function renderCakeBuilder(){
       <div class="cake-field-label">Пропитка этого коржа</div>
       <div class="cake-chip-row">
         ${CAKE_SYRUPS.map(s=> chip({active: layer.syrup===s.id, label:s.label, role:'layer-syrup', idx:i, value:s.id, dot:s.c})).join('')}
-      </div>`;
+      </div>
+      ${d.layers.length>=3 ? `<button type="button" class="shop-link-btn" data-role="apply-syrup-all" data-idx="${i}" style="margin-top:6px;">↧ Такая же пропитка на все коржи</button>` : ''}`;
     return `<div class="cake-layer-card">
       <div class="cake-layer-head">
         <span class="cake-layer-num" data-role="toggle-layer" data-idx="${i}" style="cursor:pointer;">
