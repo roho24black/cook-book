@@ -23,7 +23,7 @@ export const CAKE_KINDS = [
       { id:'lemon', label:'Лимонный', c:'#E8CE6A', extra:['Лимон',0.5,'шт'] }
     ] },
   { id:'honey', label:'Медовик', shape:'slab', heightPx:14, thin:true, bakeMinutes:6, bakeTemp:190,
-    doughIngredients:[['Мука пшеничная',70,'г'],['Мёд',30,'г'],['Яйца',0.5,'шт'],['Масло сливочное',20,'г'],['Сахар',20,'г']],
+    doughIngredients:[['Мука пшеничная',56,'г'],['Мёд',8,'г'],['Яйца',0.4,'шт'],['Масло сливочное',6,'г'],['Сахар',25,'г']],
     vars:[ { id:'honey', label:'Медовые коржи', c:'#C99447' } ] },
   { id:'velvet', label:'Красный бархат', shape:'slab', heightPx:30, bakeMinutes:32, bakeTemp:175,
     doughIngredients:[['Мука пшеничная',80,'г'],['Яйца',1.5,'шт'],['Сахар',75,'г'],['Кефир',50,'мл']],

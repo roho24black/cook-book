@@ -64,7 +64,10 @@ export const cakeComponentSeed = [
 
   { title:'Медовые коржи (один корж Ø20)', category:'Для торта', servings:1, cookTime:20, difficulty:'Средне',
     componentType:'dough', componentId:'dough:honey:honey',
-    ingredients:[{qty:70,unit:'г',name:'Мука пшеничная'},{qty:30,unit:'г',name:'Мёд'},{qty:0.5,unit:'шт',name:'Яйца'},{qty:20,unit:'г',name:'Масло сливочное'},{qty:20,unit:'г',name:'Сахар'},{qty:0.15,unit:'ч.л.',name:'Сода'}],
+    // Сверено с рецептом "Медовик" из общей базы (recipes-seed.js): там на 8 тонких коржей
+    // уходит 450 г муки, 3 яйца, ~65 г мёда, 50 г масла — то есть на ОДИН корж заметно
+    // меньше мёда и масла, чем было здесь раньше (30 г и 20 г — это было в 3-4 раза больше нормы).
+    ingredients:[{qty:56,unit:'г',name:'Мука пшеничная'},{qty:8,unit:'г',name:'Мёд'},{qty:0.4,unit:'шт',name:'Яйца'},{qty:6,unit:'г',name:'Масло сливочное'},{qty:25,unit:'г',name:'Сахар'},{qty:0.13,unit:'ч.л.',name:'Сода'}],
     steps:[
       {text:'Мёд, масло и сахар растопить на водяной бане до однородности, снять с огня.', timerMinutes:null},
       {text:'Всыпать соду, размешать — масса посветлеет и запенится.', timerMinutes:null},
