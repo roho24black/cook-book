@@ -96,7 +96,7 @@ export function renderCakesList(){
       <div class="cake-card-thumb">${buildCutSectionHtml(c, 0.34)}</div>
       <div class="cake-card-body">
         <div class="cake-card-title">${escapeHtml(summaryTitle(c))}</div>
-        <div class="cake-card-sub">Ø${widest} см · ${escapeHtml(findCream(c.creams[0]||'cheese').label.toLowerCase())} · ${escapeHtml(findDecor(c.decor).label.toLowerCase())}</div>
+        <div class="cake-card-sub">Ø${widest} см · ${escapeHtml(findCream(c.creams[0]||'cheese').label.toLowerCase())} · ${escapeHtml(asDecorArray(c.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ') || 'без декора')}</div>
         <div class="cake-card-tags">
           <span class="cake-tag" style="background:${badgeBg};color:${badgeColor}">${c.date ? escapeHtml(fmtDate(c.date))+' · ' : ''}${badge}</span>
           <span class="cake-tag" style="background:rgba(88,107,77,.14);color:var(--sage)">≈${portions}</span>
