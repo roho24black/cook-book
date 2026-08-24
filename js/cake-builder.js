@@ -411,12 +411,21 @@ function decorShapes(decorId, cx, topY, width){
   return shapes.join('');
 }
 
+// Ориентиры для этого разреза взяты из настоящих иллюстраций тортов (свадебные диаграммы
+// "cross-section", схемы кондитеров): у них всегда мягкий купол на самом верхнем ярусе
+// (а не плоский прямоугольник), тонкая "подложка" видна на стыке разных диаметров, крем
+// слегка "выпирает" в шве между коржами, и по корпусу торта — мягкий блик слева, придающий
+// объём вместо плоской заливки.
+let svgIdSeq = 0;
+
 export function buildCutSectionHtml(draft, scale){
   const layers = draft.layers;
   const n = layers.length;
   const naked = !draft.coatSame && draft.coat === 'naked';
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const coatPad = naked ? 1.5 : Math.max(4, 6*scale);
+  const domeH = naked ? 0 : Math.max(4, 7*scale);
+  const uid = ++svgIdSeq;
 
   const widths = layers.map(l=> Math.round((92 + (l.diameter-16)*7.2) * scale));
   const heights = layers.map(l=> Math.max(4, Math.round(findKind(l.kind).heightPx * scale)));
@@ -436,36 +445,59 @@ export function buildCutSectionHtml(draft, scale){
   const svgW = maxWidth + coatPad*2 + 24;
   const decorH = 24*scale;
   const plateH = 7*scale;
-  const topPad = 10*scale;
+  const topPad = 10*scale + domeH;
   const svgH = decorH + topPad + stackH + coatPad*2 + plateH + 6;
   const cx = svgW/2;
   const flip = (yUp)=> svgH - plateH - (yUp); // низ стопки стоит чуть выше тарелки
 
-  let svg = '';
+  let svg = `<defs><linearGradient id="sheen${uid}" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity=".07"/></linearGradient></defs>`;
 
   // покрытие/обводка — по одному прямоугольнику на корж, растянутому до середины
   // соседних кремовых зазоров, поэтому у одинаковых по ширине соседей шов не виден,
-  // а на смене диаметра получается аккуратная "ступенька", как у настоящего ярусного торта
+  // а на смене диаметра получается аккуратная "ступенька", как у настоящего ярусного торта.
+  // У самого верхнего яруса — купол (эллипс той же заливки поверх плоского края).
+  let topHaloY = null, topHaloW = 0;
   if(!naked){
     slabBands.forEach((b, idx)=>{
       const kind = findKind(layers[b.i].kind);
       if(kind.shape === 'tartlet') return;
       const below = idx>0 ? gapBands[idx-1] : null;
       const above = idx<slabBands.length-1 ? gapBands[idx] : null;
+      const isTop = !above;
       const y0 = below ? (below.y0+below.y1)/2 : 0;
       const y1 = above ? (above.y0+above.y1)/2 : b.y1 + coatPad*1.6;
       const w = b.width + coatPad*2;
       const h = y1 - y0;
       svg += `<rect x="${(cx-w/2).toFixed(1)}" y="${flip(y1).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${coat.c || '#F1E2C6'}"/>`;
+      if(isTop){ topHaloY = flip(y1); topHaloW = w; }
     });
+    if(topHaloY!==null && domeH>0){
+      svg += `<ellipse cx="${cx.toFixed(1)}" cy="${topHaloY.toFixed(1)}" rx="${(topHaloW/2).toFixed(1)}" ry="${domeH.toFixed(1)}" fill="${coat.c || '#F1E2C6'}"/>`;
+    }
   }
 
-  // кремовые прослойки
+  // тонкая подложка ("каше") на стыке коржей РАЗНОГО диаметра — как у настоящего
+  // многоярусного торта, где между ярусами видна картонная подложка
+  gapBands.forEach((g,i)=>{
+    if(widths[i]===widths[i+1]) return;
+    const kindBelow = findKind(layers[i].kind), kindAbove = findKind(layers[i+1].kind);
+    if(kindBelow.shape==='tartlet' || kindAbove.shape==='tartlet') return;
+    const boardW = Math.max(widths[i],widths[i+1]) + coatPad*2 + 5;
+    const midY = (g.y0+g.y1)/2;
+    svg += `<rect x="${(cx-boardW/2).toFixed(1)}" y="${(flip(midY)-1).toFixed(1)}" width="${boardW.toFixed(1)}" height="2.2" rx="1.1" fill="#E3D4B8"/>`;
+  });
+
+  // кремовые прослойки — чуть шире самого коржа ("выпирают" в шве, как у настоящего торта),
+  // но не шире внешней обводки
   gapBands.forEach((g,i)=>{
     const cream = findCream(draft.creams[i] || draft.creams[draft.creams.length-1] || 'cheese');
     const kindBelow = findKind(layers[i].kind);
     if(kindBelow.shape === 'tartlet') return; // у тарталетки крем уже показан как начинка внутри чаши
-    svg += `<rect x="${(cx-g.width/2).toFixed(1)}" y="${flip(g.y1).toFixed(1)}" width="${g.width.toFixed(1)}" height="${(g.y1-g.y0).toFixed(1)}" fill="${cream.c}"/>`;
+    const bulge = naked ? 0 : Math.min(3*scale, coatPad*0.8);
+    const w = g.width + bulge*2;
+    svg += `<rect x="${(cx-w/2).toFixed(1)}" y="${flip(g.y1).toFixed(1)}" width="${w.toFixed(1)}" height="${(g.y1-g.y0).toFixed(1)}" fill="${cream.c}"/>`;
   });
 
   // сами коржи
@@ -476,7 +508,7 @@ export function buildCutSectionHtml(draft, scale){
     const syrup = findSyrup(layer.syrup);
     const w = b.width, h = b.y1-b.y0;
     const x = cx - w/2, yTop = flip(b.y1);
-    const rx = Math.min(4, h/3, w/12);
+    const rx = Math.min(6, h/2.2, w/10);
 
     if(kind.shape === 'tartlet'){
       const fillCream = b.i < draft.creams.length ? findCream(draft.creams[b.i]) : (draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : coat);
@@ -506,8 +538,15 @@ export function buildCutSectionHtml(draft, scale){
     }
   });
 
+  // мягкий блик слева направо поверх всего корпуса — даёт объём вместо плоской заливки,
+  // как на настоящих иллюстрациях (не плоский цвет, а лёгкий цилиндрический "свет-тень")
+  const sheenTop = topHaloY!==null ? topHaloY - domeH : flip(stackH);
+  const sheenH = svgH - plateH - sheenTop;
+  const sheenW = maxWidth + coatPad*2 + 4;
+  svg += `<rect x="${(cx-sheenW/2).toFixed(1)}" y="${sheenTop.toFixed(1)}" width="${sheenW.toFixed(1)}" height="${sheenH.toFixed(1)}" rx="${Math.min(10,domeH+coatPad).toFixed(1)}" fill="url(#sheen${uid})"/>`;
+
   const topLayerWidth = widths[widths.length-1];
-  const decorTopY = flip(stackH) - coatPad*1.6;
+  const decorTopY = (topHaloY!==null ? topHaloY - domeH : flip(stackH)) - coatPad*0.6;
   svg += decorShapes(draft.decor, cx, decorTopY, topLayerWidth);
 
   const plateW = maxWidth + coatPad*2 + 26;
