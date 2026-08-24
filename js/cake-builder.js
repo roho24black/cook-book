@@ -316,6 +316,8 @@ function renderCakeBuilder(){
 
   const costEl = document.getElementById('cakeCostEstimate');
   if(costEl) costEl.innerHTML = `💰 Ориентировочно продукты: <b>≈${estimateCakeCost(d)} ₽</b> <span style="opacity:.7;">(прикидка по средним ценам, не смета)</span>`;
+
+  renderCakePhotoGallery();
 }
 
 // делегирование кликов — один слушатель на всю форму конструктора, элементы перерисовываются целиком
