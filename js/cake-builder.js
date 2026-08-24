@@ -364,7 +364,6 @@ document.getElementById('cakeImportParseBtn')?.addEventListener('click', ()=>{
 // торт), без рассинхрона между "оболочкой" и внутренними блоками, который выглядел криво.
 function decorShapes(decorId, cx, topY, width){
   const shapes = [];
-  const put = (x,y,el)=> shapes.push(el.replace('{x}',x.toFixed(1)).replace('{y}',y.toFixed(1)));
   if(decorId==='berries'){
     const cs=['#8E2B2B','#5E2340','#A93B54','#7A2E2E','#3F5730'];
     const n = Math.max(3, Math.round(width/26));
