@@ -16,7 +16,7 @@ import {
 } from './cake-constants.js';
 import { buildCakeTemplate, parseCakeText } from './cake-text-format.js';
 
-const MIN_LAYERS = 2, MAX_LAYERS = 6;
+const MIN_LAYERS = 2, MAX_LAYERS = 15;
 
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 
