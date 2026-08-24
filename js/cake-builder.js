@@ -467,7 +467,8 @@ document.getElementById('cakeSaveBtn').addEventListener('click', async ()=>{
   const data = {
     title: d.title || summaryTitle(d),
     occasion: d.occasion, description: d.description||'', date: d.date, status: d.status || 'planned',
-    layers: d.layers, creams: d.creams, coatSame: d.coatSame, coat: d.coat, decor: d.decor
+    layers: d.layers, creams: d.creams, coatSame: d.coatSame, coat: d.coat, decor: d.decor,
+    layerNotes: d.layerNotes || [], updatedAt: new Date().toISOString()
   };
   if(d.id){
     await updateDoc(doc(db, 'cakes', d.id), data);
