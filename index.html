@@ -392,6 +392,13 @@
   .tc-footer{ margin-top:22px; padding-top:12px; border-top:1px dashed var(--line); font-size:11px; color:var(--ink-soft); text-align:center; }
 
   @media print{
+    /* Печать всегда светлая, даже если на экране активна тёмная тема — иначе текст
+       цвета --ink (светлый в тёмной теме) уходит почти белым по белому листу. */
+    :root{
+      --paper:#F0E7D4 !important; --paper-shadow:#D9C9A0 !important; --ink:#2B2519 !important; --ink-soft:#5C5342 !important;
+      --burgundy:#7A2E2E !important; --burgundy-dark:#5C2222 !important; --sage:#586B4D !important; --mustard:#C68A2E !important;
+      --card:#FBF6EA !important; --line:#D9CBA6 !important; --green:#4C7A5C !important; --red:#B5453D !important;
+    }
     .sidebar, .bottom-nav, .scroll-top-btn, .toast-container, #setupBanner,
     .modal-close, .detail-actions-top, .servings-adjust button, #photoGallery,
     .avg-rating-pill, .no-print{ display:none !important; }
