@@ -1534,12 +1534,13 @@ function renderCardOptsFormat(){
 function renderCardOptsGallery(){
   const wrap = document.getElementById('cardOptsGallery');
   if(!wrap || !cardOptsDraft) return;
+  const format = findCardFormat(cardFormatKey);
+  const aspect = (format.w / Math.round(format.w*format.ratio)).toFixed(4);
   wrap.innerHTML = CARD_STYLES.map(s=> `
     <div class="cs-gallery-item" data-role="card-style" data-key="${s.key}">
-      <div class="cs-gallery-thumb${s.key===cardStyleKey?' active':''}" id="cs-thumb-${s.key}" style="background:${s.bg};">…</div>
+      <div class="cs-gallery-thumb${s.key===cardStyleKey?' active':''}" id="cs-thumb-${s.key}" style="background:${s.bg}; aspect-ratio:${aspect};">…</div>
       <div class="cs-gallery-label${s.key===cardStyleKey?' active':''}">${escapeHtml(s.label)}</div>
     </div>`).join('');
-  const format = findCardFormat(cardFormatKey);
   CARD_STYLES.forEach(s=>{
     renderTechCardCanvas(cardOptsDraft, { style:s.key, format:format.key }).then(canvas=>{
       const el = document.getElementById(`cs-thumb-${s.key}`);
