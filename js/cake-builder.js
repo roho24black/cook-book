@@ -685,6 +685,51 @@ function summarySub(draft){
 
 function round(v, step){ step = step||10; return Math.max(step, Math.round(v/step)*step); }
 
+// ---------- грубая оценка стоимости ----------
+// Ориентировочные цены по продуктам средней полки (руб.), 2026 год — не привязаны к
+// конкретному магазину, только чтобы прикинуть порядок цифр, не точная смета.
+const PRICE_RULES = [
+  { re:/сахарная пудра/i, rate:0.09 },
+  { re:/мука/i, rate:0.06 },
+  { re:/сахар/i, rate:0.07 },
+  { re:/яйца|желток|белок/i, rate:9 },
+  { re:/масло сливочное|сливочное масло/i, rate:1.1 },
+  { re:/сливки/i, rate:0.35 },
+  { re:/сливочный сыр|творожный сыр/i, rate:0.9 },
+  { re:/шоколад/i, rate:1.2 },
+  { re:/мёд/i, rate:0.6 },
+  { re:/кефир/i, rate:0.12 },
+  { re:/молоко/i, rate:0.09 },
+  { re:/сода|крахмал|соль/i, rate:0.15 },
+  { re:/ваниль/i, fixed:40 },
+  { re:/какао/i, rate:1.0 },
+  { re:/кофе/i, rate:1.5 },
+  { re:/клубника|ягод|вишня|малина/i, rate:0.5 },
+  { re:/морковь/i, rate:0.08 },
+  { re:/лимон/i, fixed:40 },
+  { re:/печенье/i, rate:0.5 },
+  { re:/йогурт/i, rate:0.6 },
+  { re:/желатин/i, rate:3 },
+  { re:/краситель/i, fixed:150 },
+  { re:/мастика/i, rate:0.8 },
+  { re:/посыпк/i, rate:2 },
+  { re:/карамель/i, rate:1 },
+  { re:/\bром\b/i, rate:2 },
+  { re:/вода/i, rate:0.01 },
+];
+function estimateIngredientCost(item){
+  if(item.qty===null || item.qty===undefined) return 0;
+  let amt = item.qty;
+  if(item.unit==='кг' || item.unit==='л') amt *= 1000;
+  const rule = PRICE_RULES.find(r=> r.re.test(item.name));
+  if(!rule) return 0; // неизвестный ингредиент — лучше занизить оценку, чем выдумать цену
+  return rule.fixed!==undefined ? rule.fixed : amt*rule.rate;
+}
+export function estimateCakeCost(draft){
+  const total = computeCakeIngredients(draft).reduce((sum,i)=> sum + estimateIngredientCost(i), 0);
+  return Math.round(total/50)*50; // округляем до полтинника — это прикидка, не смета
+}
+
 // Настоящий рецепт компонента из базы (см. cake-component-seed.js) — если автор его
 // отредактировал или удалил, здесь просто не найдётся, и конструктор тихо откатится
 // на приблизительный расчёт из cake-constants.js.
