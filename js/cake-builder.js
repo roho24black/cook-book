@@ -60,7 +60,17 @@ document.getElementById('cakesCloseBtn').addEventListener('click', closeCakesTab
 export function renderCakesList(){
   const wrap = document.getElementById('cakesList');
   if(!wrap) return;
-  const cakes = store.cakes.slice().reverse(); // новые сверху
+  // Ближайшие по дате торты — сверху (что готовить в первую очередь важнее, чем что
+  // недавно создано); торты без даты или с прошедшей датой — ниже, среди них недавно
+  // созданные впереди.
+  const today = todayISO();
+  const cakes = store.cakes.slice().sort((a,b)=>{
+    const ad = a.date || '', bd = b.date || '';
+    const aUp = ad >= today, bUp = bd >= today;
+    if(aUp !== bUp) return aUp ? -1 : 1;
+    if(aUp) return ad.localeCompare(bd);
+    return (b.dateAdded||'').localeCompare(a.dateAdded||'');
+  });
   const cardsHtml = cakes.map(c=>{
     const widest = Math.max(...c.layers.map(l=>l.diameter));
     const portions = estimatePortions(c);
