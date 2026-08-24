@@ -87,6 +87,10 @@ export function renderCakesList(){
           <span class="cake-tag" style="background:${badgeBg};color:${badgeColor}">${c.date ? escapeHtml(fmtDate(c.date))+' · ' : ''}${badge}</span>
           <span class="cake-tag" style="background:rgba(88,107,77,.14);color:var(--sage)">≈${portions}</span>
         </div>
+        <div class="cake-card-actions">
+          <button type="button" class="cake-card-action-btn" data-role="clone-cake" data-id="${c.id}">⧉ Похожий</button>
+          ${c.recipeId ? `<button type="button" class="cake-card-action-btn" data-role="open-recipe" data-recipe-id="${c.recipeId}">📖 Рецепт</button>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
