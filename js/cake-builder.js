@@ -969,10 +969,10 @@ function generateCakeDescription(draft){
   }).join(', ');
   const creamsPart = Array.from(new Set(draft.creams.map(c=> findCream(c).label.toLowerCase()))).join(', ');
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
-  const decor = findDecor(draft.decor);
+  const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
   const diamRange = Array.from(new Set(draft.layers.map(l=>l.diameter))).sort((a,b)=>a-b);
   const diamText = diamRange.length>1 ? `от Ø${diamRange[0]} до Ø${diamRange[diamRange.length-1]} см (ярусный)` : `Ø${diamRange[0]} см`;
-  return `Торт из ${draft.layers.length} коржей — ${kindsPart}. Между коржами: ${creamsPart}. Снаружи: ${coat.label.toLowerCase()}${decor.id!=='none' ? ', декор — '+decor.label.toLowerCase() : ''}. Диаметр: ${diamText}. Ориентировочный выход — ${estimatePortions(draft)} порций.`;
+  return `Торт из ${draft.layers.length} коржей — ${kindsPart}. Между коржами: ${creamsPart}. Снаружи: ${coat.label.toLowerCase()}${decorLabel ? ', декор — '+decorLabel : ''}. Диаметр: ${diamText}. Ориентировочный выход — ${estimatePortions(draft)} порций.`;
 }
 
 // ---------- технологическая карта (рисунок + разбор по коржам/кремам + описание) ----------
