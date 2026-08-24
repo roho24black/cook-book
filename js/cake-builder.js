@@ -150,7 +150,7 @@ export function openCakeBuilder(existing){
   store.cakeDraft = existing
     ? JSON.parse(JSON.stringify({
         id: existing.id, title: existing.title||'', occasion: existing.occasion||'',
-        description: existing.description||'',
+        description: existing.description||'', recipeId: existing.recipeId||null,
         date: existing.date || todayISO(), status: existing.status || 'draft',
         layers: existing.layers, creams: existing.creams, coatSame: existing.coatSame,
         coat: existing.coat, decor: existing.decor
@@ -159,6 +159,7 @@ export function openCakeBuilder(existing){
   document.getElementById('cakesOverlay').classList.remove('open');
   document.getElementById('cakeBuilderOverlay').classList.add('open');
   document.getElementById('cakeDeleteBtn').style.display = existing ? 'inline-flex' : 'none';
+  collapsedLayers.clear();
   renderCakeBuilder();
 }
 
