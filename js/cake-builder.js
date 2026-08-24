@@ -725,48 +725,58 @@ function generateCakeDescription(draft){
 }
 
 // ---------- технологическая карта (рисунок + разбор по коржам/кремам + описание) ----------
+// Печатается как A4 альбомная (см. @page и .cake-techcard в index.html): рисунок и сводка
+// слева, разбор по каждому коржу/крему отдельными блоками справа — так на бумаге видно,
+// что у Ø16 и Ø26 разный расход муки, а не один "слепок" на весь торт, и что повторяющийся
+// крем нужно замесить одним блоком на все стыки сразу, а не отдельно на каждый.
+function ingListHtml(items){
+  return `<ul class="ing-list">${items.map(i=> `<li><span>${escapeHtml(i.name)}</span><span class="amt">${fmtQty(i.qty)} ${escapeHtml(i.unit)}</span></li>`).join('')}</ul>`;
+}
+
 export function renderTechCard(draft){
   const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
-  const ingredients = computeCakeIngredients(draft);
-
-  const layersRows = draft.layers.map((l,i)=>{
-    const kind = findKind(l.kind), variant = findVariant(kind, l.variant), syrup = findSyrup(l.syrup);
-    return `<tr><td>${i+1}</td><td>${escapeHtml(kind.label)} — ${escapeHtml(variant.label)}</td><td>Ø${l.diameter} см</td><td>${escapeHtml(syrup.label)}</td></tr>`;
-  }).join('');
-
-  const creamRows = draft.creams.map((c,i)=>
-    `<tr><td>${i+1} → ${i+2}</td><td>${escapeHtml(findCream(c).label)}</td></tr>`
-  ).join('');
-
+  const breakdown = computeCakeIngredientsBreakdown(draft);
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const decor = findDecor(draft.decor);
 
-  const ingList = ingredients.map(i=>
-    `<li><span>${escapeHtml(i.name)}</span><span class="amt">${fmtQty(i.qty)} ${escapeHtml(i.unit)}</span></li>`
-  ).join('');
+  const layerBlocks = breakdown.layers.map(l=> `
+    <div class="tc-component">
+      <div class="tc-component-head">Корж ${l.index+1} · ${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)} · Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}</div>
+      ${ingListHtml(l.ingredients)}
+    </div>`).join('');
+
+  const creamBlocks = breakdown.creamGroups.map(c=> `
+    <div class="tc-component">
+      <div class="tc-component-head">Крем «${escapeHtml(c.label)}» — на стыки ${escapeHtml(c.gapsText)} (один замес на все сразу)</div>
+      ${ingListHtml(c.ingredients)}
+    </div>`).join('');
+
+  const extraBlocks = [
+    breakdown.coat ? `<div class="tc-component"><div class="tc-component-head">Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}</div>${ingListHtml(breakdown.coat.ingredients)}</div>` : '',
+    breakdown.decor ? `<div class="tc-component"><div class="tc-component-head">Декор: ${escapeHtml(breakdown.decor.label)}</div>${ingListHtml(breakdown.decor.ingredients)}</div>` : ''
+  ].join('');
 
   document.getElementById('cakeTechCardBody').innerHTML = `
-    <p class="detail-cat">Технологическая карта</p>
-    <h2 class="detail-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
-    <div style="display:flex; justify-content:center; margin:6px 0 18px;">${buildCutSectionHtml(draft, 0.85)}</div>
-    <p style="font-size:13.5px; line-height:1.6; color:var(--ink);">${escapeHtml(description)}</p>
-    <div class="detail-meta-row">
-      <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
-      <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
-      ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
-    </div>
-    <div class="detail-section">
-      <h4>Коржи</h4>
-      <table class="ref-table"><thead><tr><th>№</th><th>Вид и вкус</th><th>Диаметр</th><th>Пропитка</th></tr></thead><tbody>${layersRows}</tbody></table>
-    </div>
-    <div class="detail-section" style="margin-top:18px;">
-      <h4>Крема между коржами</h4>
-      <table class="ref-table"><thead><tr><th>Стык</th><th>Крем</th></tr></thead><tbody>${creamRows}</tbody></table>
-      <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decor.id!=='none' ? ' · декор: '+escapeHtml(decor.label) : ''}</p>
-    </div>
-    <div class="detail-section" style="margin-top:18px;">
-      <h4>Ингредиенты (итого на весь торт)</h4>
-      <ul class="ing-list">${ingList}</ul>
+    <div class="cake-techcard">
+      <div class="tc-col-left">
+        <p class="detail-cat">Технологическая карта</p>
+        <h2 class="detail-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
+        <div style="display:flex; justify-content:center; margin:6px 0 16px;">${buildCutSectionHtml(draft, 0.85)}</div>
+        <p style="font-size:13px; line-height:1.6; color:var(--ink);">${escapeHtml(description)}</p>
+        <div class="detail-meta-row">
+          <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
+          <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
+          ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
+        </div>
+        <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decor.id!=='none' ? ' · декор: '+escapeHtml(decor.label) : ''}</p>
+      </div>
+      <div class="tc-col-right">
+        <h4 class="tc-col-heading">Разбор по коржам</h4>
+        ${layerBlocks}
+        <h4 class="tc-col-heading">Разбор по кремам</h4>
+        ${creamBlocks}
+        ${extraBlocks}
+      </div>
     </div>
   `;
 }
