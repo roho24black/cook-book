@@ -381,20 +381,41 @@
   }
 
   /* ---------- Технологическая карта ---------- */
-  .tc-header{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; padding-bottom:14px; margin-bottom:18px; border-bottom:2px solid var(--burgundy); }
-  .tc-header-kicker{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--sage); margin:0 0 4px; }
-  .tc-header-title{ font-family:'Fraunces',serif; font-weight:700; font-size:24px; margin:0; color:var(--ink); }
-  .tc-header-date{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); white-space:nowrap; }
-  .cake-techcard{ display:grid; grid-template-columns:1fr; gap:22px; }
-  .tc-col-heading{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--burgundy-dark); margin:18px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  /* Лист сразу на экране выглядит как альбомный А4-документ (не только при печати) —
+     рисунок торта и описание слева, разбор по коржам/кремам с нумерацией справа,
+     номера кружков совпадают с выносками на самом рисунке среза. */
+  .tc-sheet{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:32px 36px 26px;
+    box-shadow:0 2px 0 var(--paper-shadow), 0 10px 28px rgba(43,37,25,0.10); }
+  .tc-header{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; padding-bottom:16px; margin-bottom:22px; border-bottom:3px solid var(--burgundy); }
+  .tc-header-kicker{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--sage); margin:0 0 5px; }
+  .tc-header-title{ font-family:'Fraunces',serif; font-weight:700; font-size:28px; margin:0; color:var(--ink); }
+  .tc-header-date{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); white-space:nowrap; padding-bottom:4px; }
+  .cake-techcard{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:0; align-items:start; }
+  .tc-col-left{ padding-right:28px; border-right:1px dashed var(--line); }
+  .tc-col-right{ padding-left:28px; }
+  .tc-illus-wrap{ display:flex; justify-content:center; padding:4px 0 18px; }
+  .tc-description{ font-size:13.5px; line-height:1.65; color:var(--ink); margin:0 0 14px; }
+  .tc-col-heading{ font-family:'Fraunces',serif; font-size:14.5px; font-weight:600; color:var(--burgundy-dark); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
   .tc-col-heading:first-child{ margin-top:0; }
-  .tc-component{ margin-bottom:14px; padding:11px 13px; border-radius:8px; border:1px solid var(--line); border-left:3px solid var(--line); background:rgba(122,46,46,0.04); }
-  .tc-component-dough{ border-left-color:var(--burgundy); }
-  .tc-component-cream{ border-left-color:var(--sage); }
-  .tc-component-extra{ border-left-color:var(--mustard); }
-  .tc-component-head{ font-size:12px; font-weight:700; color:var(--sage); margin-bottom:6px; line-height:1.4; }
+  .tc-component{ display:flex; gap:12px; margin-bottom:12px; padding:12px 14px; border-radius:9px; border:1px solid var(--line); background:rgba(122,46,46,0.035); }
+  .tc-badge{ flex-shrink:0; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:12.5px; color:#fff; background:var(--burgundy); }
+  .tc-component-cream .tc-badge, .tc-component-extra .tc-badge{ background:transparent; font-size:16px; }
+  .tc-component-body{ flex:1; min-width:0; }
+  .tc-component-dough{ border-left:3px solid var(--burgundy); }
+  .tc-component-cream{ border-left:3px solid var(--sage); }
+  .tc-component-extra{ border-left:3px solid var(--mustard); }
+  .tc-component-head{ font-size:13px; font-weight:700; color:var(--ink); margin-bottom:2px; line-height:1.4; }
+  .tc-component-sub{ font-size:11.5px; color:var(--sage); margin-bottom:6px; }
+  .tc-component .ing-list{ margin-bottom:0; }
   .tc-component .ing-list li{ padding:4px 2px; font-size:12.5px; }
-  .tc-footer{ margin-top:22px; padding-top:12px; border-top:1px dashed var(--line); font-size:11px; color:var(--ink-soft); text-align:center; }
+  .tc-footer{ margin-top:24px; padding-top:12px; border-top:1px dashed var(--line); font-size:11px; color:var(--ink-soft); text-align:center; }
+
+  @media (max-width:760px){
+    .cake-techcard{ grid-template-columns:1fr; }
+    .tc-col-left{ padding-right:0; border-right:none; border-bottom:1px dashed var(--line); padding-bottom:18px; margin-bottom:18px; }
+    .tc-col-right{ padding-left:0; }
+  }
 
   @media print{
     /* Печать всегда светлая, даже если на экране активна тёмная тема — иначе текст
