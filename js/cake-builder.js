@@ -426,6 +426,18 @@ document.getElementById('cakeDateInput').addEventListener('change', (e)=>{ store
 document.getElementById('cakeOccasionInput').addEventListener('input', (e)=>{ store.cakeDraft.occasion = e.target.value; });
 document.getElementById('cakeDescriptionInput').addEventListener('input', (e)=>{ store.cakeDraft.description = e.target.value; });
 
+// Заметки к сборке коржа — карточки коржей перерисовываются целиком при любом изменении,
+// поэтому слушатель делегированный (на стабильный родитель), а не по одному на инпут.
+// И, что важно, НЕ вызывает renderCakeBuilder() на каждую букву — иначе поле теряло бы
+// фокус посреди набора текста (та же причина, по которой occasion/description устроены так же).
+document.getElementById('cakeBuilderOverlay').addEventListener('input', (e)=>{
+  const el = e.target.closest('[data-role="layer-note"]');
+  if(!el || !store.cakeDraft) return;
+  const idx = parseInt(el.dataset.idx);
+  const notes = store.cakeDraft.layerNotes || (store.cakeDraft.layerNotes = []);
+  notes[idx] = el.value;
+});
+
 document.getElementById('cakeBuyCopyBtn').addEventListener('click', ()=>{
   const items = computeCakeIngredients(store.cakeDraft);
   const text = items.map(i=> `- ${i.name}${i.qty!==null?` — ${fmtQty(i.qty)} ${i.unit}`:` — ${i.unit}`}`).join('\n');
