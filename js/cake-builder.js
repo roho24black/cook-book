@@ -930,6 +930,12 @@ document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()
   let trimmed = false;
   if(data.ingredients.length > 60){ data.ingredients = data.ingredients.slice(0,60); trimmed = true; }
   if(data.steps.length > 60){ data.steps = data.steps.slice(0,60); trimmed = true; }
-  await addDoc(recipesCol, { ...data, favorite:false, dateAdded: new Date().toISOString() });
+  const newRecipe = await addDoc(recipesCol, { ...data, favorite:false, dateAdded: new Date().toISOString() });
+  // Если этот торт уже сохранён отдельной записью — привязываем к нему id рецепта,
+  // чтобы на карточке в "Мои торты" появилась ссылка "📖 Рецепт" прямо на готовый рецепт.
+  if(store.cakeDraft.id){
+    store.cakeDraft.recipeId = newRecipe.id;
+    await updateDoc(doc(db, 'cakes', store.cakeDraft.id), { recipeId: newRecipe.id }).catch(()=>{});
+  }
   showToast(trimmed ? 'Рецепт сохранён, но список пришлось обрезать до 60 позиций — очень уж навороченный торт' : 'Единый рецепт торта сохранён в «Рецептах»');
 });
