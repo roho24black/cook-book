@@ -944,6 +944,8 @@ export function buildVirtualRecipe(draft){
       text += kind.shape==='tartlet' ? `, наполнить кремом: ${cream.label.toLowerCase()}` : `, промазать кремом: ${cream.label.toLowerCase()}`;
     }
     text += '.';
+    const note = (draft.layerNotes||[])[i];
+    if(note && note.trim()) text += ` (${note.trim()})`;
     steps.push({ text, timerMinutes: null });
   });
 
