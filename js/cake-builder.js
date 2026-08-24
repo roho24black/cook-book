@@ -629,7 +629,7 @@ function decorShapes(decorId, cx, topY, width){
 // объём вместо плоской заливки.
 let svgIdSeq = 0;
 
-export function buildCutSectionHtml(draft, scale){
+export function buildCutSectionHtml(draft, scale, numbered){
   const layers = draft.layers;
   const n = layers.length;
   const naked = !draft.coatSame && draft.coat === 'naked';
@@ -637,6 +637,9 @@ export function buildCutSectionHtml(draft, scale){
   const coatPad = naked ? 1.5 : Math.max(4, 6*scale);
   const domeH = naked ? 0 : Math.max(4, 7*scale);
   const uid = ++svgIdSeq;
+  // При numbered=true (техкарта) резервируем полосу справа под кружки-номера коржей —
+  // они совпадают с номерами в разборе по коржам, как на настоящем чертеже-развёртке.
+  const numberPad = numbered ? Math.max(30, 34*scale) : 0;
 
   const widths = layers.map(l=> Math.round((92 + (l.diameter-16)*7.2) * scale));
   const heights = layers.map(l=> Math.max(4, Math.round(findKind(l.kind).heightPx * scale)));
@@ -653,12 +656,12 @@ export function buildCutSectionHtml(draft, scale){
   }
   const stackH = y;
   const maxWidth = Math.max(...widths);
-  const svgW = maxWidth + coatPad*2 + 24;
+  const svgW = maxWidth + coatPad*2 + 24 + numberPad;
   const decorH = 24*scale;
   const plateH = 7*scale;
   const topPad = 10*scale + domeH;
   const svgH = decorH + topPad + stackH + coatPad*2 + plateH + 6;
-  const cx = svgW/2;
+  const cx = (maxWidth + coatPad*2 + 24)/2;
   const flip = (yUp)=> svgH - plateH - (yUp); // низ стопки стоит чуть выше тарелки
 
   let svg = `<defs><linearGradient id="sheen${uid}" x1="0" y1="0" x2="1" y2="0">
