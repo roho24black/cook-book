@@ -195,6 +195,7 @@ function renderCakeBuilder(){
         <div class="cake-chip-row">
           ${CAKE_CREAMS.map(c=> chip({active: (d.creams[i]||CAKE_CREAMS[0].id)===c.id, label:c.label, role:'gap-cream', idx:i, value:c.id, dot:c.c})).join('')}
         </div>
+        ${d.creams.length>=2 ? `<button type="button" class="shop-link-btn" data-role="apply-cream-all" data-idx="${i}" style="margin-top:7px;">↧ Такой же крем на все стыки</button>` : ''}
       </div>` : '';
     return `<div class="cake-layer-card">
       <div class="cake-layer-head">
