@@ -248,7 +248,14 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
   if(!d) return;
 
   if(role==='layer-diameter') update(dr=> dr.layers[idx].diameter = parseInt(value));
-  else if(role==='layer-kind') update(dr=>{ dr.layers[idx].kind = value; dr.layers[idx].variant = findKind(value).vars[0].id; });
+  else if(role==='layer-kind') update(dr=>{
+    dr.layers[idx].kind = value;
+    dr.layers[idx].variant = findKind(value).vars[0].id;
+    // Песочное тесто на срезе не пропитывают (это тарталетка, а не бисквит) — сбрасываем
+    // пропитку в "без пропитки" по умолчанию, чтобы не удивлял сироп на песочной корзинке.
+    // Пользователь всё ещё может выбрать пропитку вручную, если она правда нужна.
+    if(value==='short') dr.layers[idx].syrup = 'none';
+  });
   else if(role==='layer-variant') update(dr=> dr.layers[idx].variant = value);
   else if(role==='layer-syrup') update(dr=> dr.layers[idx].syrup = value);
   else if(role==='gap-cream') update(dr=> dr.creams[idx] = value);
