@@ -1183,11 +1183,14 @@ document.getElementById('cakeTechCardPrintBtn')?.addEventListener('click', ()=> 
 function techCardText(draft){
   const breakdown = computeCakeIngredientsBreakdown(draft);
   const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const lines = [`🎂 ${draft.title || summaryTitle(draft)}`, '', description, '',
     `Порций: ≈${estimatePortions(draft)} · Коржей: ${draft.layers.length}`, '', '— Коржи —'];
   breakdown.layers.forEach(l=>{
-    lines.push(`${l.index+1}. ${l.kind.label} — ${l.variant.label}, Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+l.syrupLabel : ''}`);
-    l.ingredients.forEach(i=> lines.push(`   • ${i.name} — ${fmtQty(i.qty)} ${i.unit}`));
+    const isTop = l.index === draft.layers.length-1;
+    const creamAbove = isTop ? null : findCream(draft.creams[l.index] ?? draft.creams[draft.creams.length-1] ?? 'cheese');
+    const topNote = isTop ? `сверху: ${coat.label}` : `крем сверху: ${creamAbove.label}`;
+    lines.push(`${l.index+1}. ${l.kind.label} — ${l.variant.label}, Ø${l.diameter} см · ${l.syrupLabel ? 'пропитка: '+l.syrupLabel : 'без пропитки'} · ${topNote}`);
   });
   lines.push('', '— Крема —');
   breakdown.creamGroups.forEach(c=>{
