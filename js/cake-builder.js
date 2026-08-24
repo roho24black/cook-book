@@ -284,14 +284,15 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     dr.layers.splice(idx+1, 0, { ...dr.layers[idx] });
     dr.creams.splice(idx, 0, dr.creams[idx] ?? dr.creams[dr.creams.length-1] ?? 'cheese');
   });
-  else if(role==='apply-cream-all') update(dr=>{
-    const val = dr.creams[idx];
-    dr.creams = dr.creams.map(()=> val);
-  });
-  else if(role==='apply-kind-all') update(dr=>{
-    const { kind, variant } = dr.layers[idx];
-    dr.layers.forEach(l=>{ l.kind = kind; l.variant = variant; });
-  });
+  else if(role==='apply-cream-all'){
+    update(dr=>{ const val = dr.creams[idx]; dr.creams = dr.creams.map(()=> val); });
+    showToast(`Крем «${findCream(store.cakeDraft.creams[0]).label}» применён ко всем стыкам`);
+  }
+  else if(role==='apply-kind-all'){
+    update(dr=>{ const { kind, variant } = dr.layers[idx]; dr.layers.forEach(l=>{ l.kind = kind; l.variant = variant; }); });
+    const k = findKind(store.cakeDraft.layers[0].kind), v = findVariant(k, store.cakeDraft.layers[0].variant);
+    showToast(`«${k.label} — ${v.label}» применено ко всем коржам`);
+  }
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
   else if(role==='decor') update(dr=> dr.decor = value);
   else if(role==='move-layer') update(dr=>{
