@@ -997,7 +997,16 @@ export function buildVirtualRecipe(draft){
   if(draft.coatSame===false){
     const coat = findCoat(draft.coat);
     if(coat.id!=='naked' && coat.id!=='cream' && !seenCream.has(draft.coat)){
-      steps.push({ text: `Приготовить внешнее покрытие: ${coat.label.toLowerCase()}.`, timerMinutes: null });
+      // Если это реальный крем с своим рецептом (масляный крем на обмазку — тот же
+      // cream:butter/-choco, что и между коржами) — берём настоящие шаги замеса, а не
+      // общую строку-заглушку.
+      const coatRecipe = findComponentRecipe('cream:'+coat.id);
+      if(coatRecipe && coatRecipe.steps?.length){
+        const tag = `[Покрытие: ${coat.label.toLowerCase()}] `;
+        coatRecipe.steps.forEach(s=> steps.push({ text: tag + (typeof s==='string'?s:s.text), timerMinutes: typeof s==='object' ? s.timerMinutes : null }));
+      } else {
+        steps.push({ text: `Приготовить внешнее покрытие: ${coat.label.toLowerCase()}.`, timerMinutes: null });
+      }
     }
   }
 
