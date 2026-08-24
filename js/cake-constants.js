@@ -50,7 +50,8 @@ export const CAKE_SYRUPS = [
 
 // ingredient: [название, база_в_г_или_мл] — используется для расчёта списка покупок
 export const CAKE_CREAMS = [
-  { id:'butter', label:'Масляный крем', c:'#F3E5C6', ingredient:['Масло сливочное', 400, 'г'] },
+  { id:'butter', label:'Масляный крем (классический)', c:'#F3E5C6', ingredient:['Масло сливочное', 400, 'г'] },
+  { id:'butter-choco', label:'Масляный крем (шоколадный)', c:'#7A4A2E', ingredient:['Масло сливочное', 400, 'г'] },
   { id:'cheese', label:'Крем-чиз', c:'#FBF6EA', ingredient:['Сливочный сыр', 600, 'г'] },
   { id:'ganache', label:'Шоколадный ганаш', c:'#5A3520', ingredient:['Шоколад тёмный 55%', 350, 'г'] },
   { id:'custard', label:'Заварной крем', c:'#F2DFA6', ingredient:['Молоко', 500, 'мл'] },
