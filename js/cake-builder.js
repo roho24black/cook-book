@@ -937,8 +937,8 @@ export function buildVirtualRecipe(draft){
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   steps.push({ text: coat.id==='naked' ? 'Оставить бока открытыми — наппотель (naked cake), верх выровнять кремом.' : `Покрыть торт снаружи: ${coat.label.toLowerCase()}.`, timerMinutes: null });
 
-  const decor = findDecor(draft.decor);
-  if(decor.id!=='none') steps.push({ text: `Украсить: ${decor.label.toLowerCase()}.`, timerMinutes: null });
+  const decorLabels = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase());
+  if(decorLabels.length) steps.push({ text: `Украсить: ${decorLabels.join(', ')}.`, timerMinutes: null });
 
   steps.push({ text: 'Убрать торт в холодильник минимум на 3–4 часа перед подачей — так коржи и крем схватятся.', timerMinutes: null });
 
