@@ -259,7 +259,8 @@ function renderCakeBuilder(){
       <div class="cake-chip-row">
         ${CAKE_SYRUPS.map(s=> chip({active: layer.syrup===s.id, label:s.label, role:'layer-syrup', idx:i, value:s.id, dot:s.c})).join('')}
       </div>
-      ${d.layers.length>=3 ? `<button type="button" class="shop-link-btn" data-role="apply-syrup-all" data-idx="${i}" style="margin-top:6px;">↧ Такая же пропитка на все коржи</button>` : ''}`;
+      ${d.layers.length>=3 ? `<button type="button" class="shop-link-btn" data-role="apply-syrup-all" data-idx="${i}" style="margin-top:6px;">↧ Такая же пропитка на все коржи</button>` : ''}
+      <input type="text" class="cake-layer-note" data-role="layer-note" data-idx="${i}" value="${escapeHtml((d.layerNotes||[])[i]||'')}" placeholder="Заметка к сборке этого коржа (необязательно)">`;
     return `<div class="cake-layer-card">
       <div class="cake-layer-head">
         <span class="cake-layer-num" data-role="toggle-layer" data-idx="${i}" style="cursor:pointer;">
@@ -1026,7 +1027,7 @@ export function renderTechCard(draft){
           <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
           ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
         </div>
-        <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decor.id!=='none' ? ' · декор: '+escapeHtml(decor.label) : ''}</p>
+        <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decorLabel ? ' · декор: '+escapeHtml(decorLabel) : ''}</p>
         ${stabilityWarning(draft) ? `<div class="cake-stability-tip" style="margin-top:12px;">⚠️ ${escapeHtml(stabilityWarning(draft))}</div>` : ''}
       </div>
       <div class="tc-col-right">
