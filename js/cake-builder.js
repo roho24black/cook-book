@@ -464,6 +464,66 @@ document.getElementById('cakeDeleteBtn').addEventListener('click', async ()=>{
   closeCakeBuilder();
 });
 
+// ---------- фото готового торта ----------
+// Загрузка требует, чтобы у торта уже был id (нужен путь в Storage) — торт должен быть
+// сначала сохранён хотя бы черновиком. Правила Storage уже открыты для любого пути
+// (см. STORAGE_RULES.txt), новый путь cakes/{id}/... публиковать отдельно не нужно.
+function renderCakePhotoGallery(){
+  const gallery = document.getElementById('cakePhotoGallery');
+  if(!gallery) return;
+  const photos = store.cakeDraft?.photos || [];
+  gallery.innerHTML = photos.map((url,idx)=> `<img class="photo-thumb" src="${url}" data-idx="${idx}" loading="lazy">`).join('')
+    + `<button type="button" class="photo-add-btn" id="cakePhotoAddBtn"><span style="font-size:20px;">📷</span>Добавить</button>`;
+  gallery.querySelectorAll('.photo-thumb').forEach(img=>{
+    img.addEventListener('click', ()=> openLightbox(photos, parseInt(img.dataset.idx)));
+  });
+  document.getElementById('cakePhotoAddBtn').addEventListener('click', ()=>{
+    if(!storage){ showToast('Нужно настроить Firebase Storage'); return; }
+    if(!store.cakeDraft.id){ showToast('Сначала сохрани торт кнопкой «Сохранить торт», потом добавляй фото'); return; }
+    document.getElementById('cakePhotoInput').click();
+  });
+}
+
+function compressCakePhoto(file, maxSize, quality){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = ()=>{
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if(width > height && width > maxSize){ height = Math.round(height * maxSize/width); width = maxSize; }
+      else if(height > maxSize){ width = Math.round(width * maxSize/height); height = maxSize; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob=> resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
+document.getElementById('cakePhotoInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files || []);
+  const cid = store.cakeDraft?.id;
+  if(files.length===0 || !cid) return;
+  showToast('Сжимаю и загружаю фото…');
+  for(const file of files){
+    try{
+      const compressed = await compressCakePhoto(file, 1200, 0.82);
+      const path = `cakes/${cid}/${Date.now()}-photo.jpg`;
+      const fileRef = storageRef(storage, path);
+      await uploadBytes(fileRef, compressed, { contentType: 'image/jpeg' });
+      const url = await getDownloadURL(fileRef);
+      await updateDoc(doc(db, 'cakes', cid), { photos: arrayUnion(url) });
+      store.cakeDraft.photos = [...(store.cakeDraft.photos||[]), url];
+    } catch(err){ console.error(err); showToast('Не удалось загрузить фото'); }
+  }
+  e.target.value = '';
+  showToast('Фото добавлено');
+  renderCakePhotoGallery();
+});
+
 document.getElementById('cakeSaveBtn').addEventListener('click', async ()=>{
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить торт'); return; }
   const d = store.cakeDraft;
