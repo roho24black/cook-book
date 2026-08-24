@@ -1079,6 +1079,7 @@ function generateCakeDescription(draft){
 // что у Ø16 и Ø26 разный расход муки, а не один "слепок" на весь торт, и что повторяющийся
 // крем нужно замесить одним блоком на все стыки сразу, а не отдельно на каждый.
 function ingListHtml(items){
+  if(!items || !items.length) return '';
   return `<ul class="ing-list">${items.map(i=> `<li><span>${escapeHtml(i.name)}</span><span class="amt">${fmtQty(i.qty)} ${escapeHtml(i.unit)}</span></li>`).join('')}</ul>`;
 }
 
@@ -1102,10 +1103,19 @@ export function renderTechCard(draft){
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
 
-  const layerBlocks = breakdown.layers.map(l=> tcComponentHtml('tc-component-dough', l.index+1,
-    `${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)}`,
-    l.ingredients,
-    `Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}`)).join('');
+  // В самой техкарте по коржам — только сводка (название, диаметр, пропитка, чем промазан
+  // сверху), без полного списка ингредиентов тесто: он и так есть в общем списке покупок,
+  // а тут это просто раздувало карту. Ингредиенты по-прежнему честно расписаны у кремов —
+  // их объём (единый на все стыки сразу) важен видеть при готовке.
+  const layerBlocks = breakdown.layers.map(l=>{
+    const isTop = l.index === draft.layers.length-1;
+    const creamAbove = isTop ? null : findCream(draft.creams[l.index] ?? draft.creams[draft.creams.length-1] ?? 'cheese');
+    const topNote = isTop ? `сверху: ${coat.label}` : `крем сверху: ${creamAbove.label}`;
+    return tcComponentHtml('tc-component-dough', l.index+1,
+      `${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)}`,
+      [],
+      `Ø${l.diameter} см · ${l.syrupLabel ? 'пропитка: '+escapeHtml(l.syrupLabel) : 'без пропитки'} · ${escapeHtml(topNote)}`);
+  }).join('');
 
   const creamBlocks = breakdown.creamGroups.map(c=> tcComponentHtml('tc-component-cream', '🥄',
     `Крем «${escapeHtml(c.label)}»`,
