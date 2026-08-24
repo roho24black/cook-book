@@ -323,11 +323,13 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
   else if(role==='remove-layer') update(dr=>{
     dr.layers.splice(idx,1);
     dr.creams.splice(Math.min(idx, dr.creams.length-1),1);
+    collapsedLayers.clear(); // индексы свёрнутых карточек всё равно съедут — проще сбросить
   });
   else if(role==='duplicate-layer') update(dr=>{
     if(dr.layers.length >= MAX_LAYERS) return;
     dr.layers.splice(idx+1, 0, { ...dr.layers[idx] });
     dr.creams.splice(idx, 0, dr.creams[idx] ?? dr.creams[dr.creams.length-1] ?? 'cheese');
+    collapsedLayers.clear();
   });
   else if(role==='toggle-layer'){
     if(collapsedLayers.has(idx)) collapsedLayers.delete(idx); else collapsedLayers.add(idx);
