@@ -766,6 +766,19 @@ export function buildCutSectionHtml(draft, scale, numbered){
   const plateW = maxWidth + coatPad*2 + 26;
   svg += `<rect x="${(cx-plateW/2).toFixed(1)}" y="${(svgH-plateH).toFixed(1)}" width="${plateW.toFixed(1)}" height="${plateH.toFixed(1)}" rx="${(plateH/2).toFixed(1)}" fill="#E3D4B8"/>`;
 
+  // кружки-номера коржей справа от среза — та же нумерация, что в разборе по коржам
+  // в техкарте, чтобы читалось как настоящий инженерный чертёж с выносками.
+  if(numbered){
+    const bx = maxWidth/2 + coatPad*2 + 24 + numberPad*0.42 + (cx - maxWidth/2);
+    const r = numberPad*0.34;
+    slabBands.forEach(b=>{
+      const midY = flip((b.y0+b.y1)/2);
+      svg += `<line x1="${(cx+b.width/2+coatPad).toFixed(1)}" y1="${midY.toFixed(1)}" x2="${(bx-r).toFixed(1)}" y2="${midY.toFixed(1)}" stroke="#B8A67E" stroke-width="1" stroke-dasharray="2,2"/>`;
+      svg += `<circle cx="${bx.toFixed(1)}" cy="${midY.toFixed(1)}" r="${r.toFixed(1)}" fill="#7A2E2E"/>`;
+      svg += `<text x="${bx.toFixed(1)}" y="${(midY+numberPad*0.13).toFixed(1)}" font-family="'IBM Plex Mono',monospace" font-size="${(numberPad*0.42).toFixed(1)}" font-weight="700" fill="#fff" text-anchor="middle">${b.i+1}</text>`;
+    });
+  }
+
   return `<svg class="cake-cutsection-svg" viewBox="0 0 ${svgW.toFixed(1)} ${svgH.toFixed(1)}" width="${svgW.toFixed(0)}" height="${svgH.toFixed(0)}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
 }
 
