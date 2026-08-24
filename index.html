@@ -376,25 +376,35 @@
   }
 
   /* ---------- Технологическая карта ---------- */
+  .tc-header{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; padding-bottom:14px; margin-bottom:18px; border-bottom:2px solid var(--burgundy); }
+  .tc-header-kicker{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--sage); margin:0 0 4px; }
+  .tc-header-title{ font-family:'Fraunces',serif; font-weight:700; font-size:24px; margin:0; color:var(--ink); }
+  .tc-header-date{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft); white-space:nowrap; }
   .cake-techcard{ display:grid; grid-template-columns:1fr; gap:22px; }
   .tc-col-heading{ font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--burgundy-dark); margin:18px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
   .tc-col-heading:first-child{ margin-top:0; }
-  .tc-component{ margin-bottom:14px; padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:rgba(122,46,46,0.04); }
+  .tc-component{ margin-bottom:14px; padding:11px 13px; border-radius:8px; border:1px solid var(--line); border-left:3px solid var(--line); background:rgba(122,46,46,0.04); }
+  .tc-component-dough{ border-left-color:var(--burgundy); }
+  .tc-component-cream{ border-left-color:var(--sage); }
+  .tc-component-extra{ border-left-color:var(--mustard); }
   .tc-component-head{ font-size:12px; font-weight:700; color:var(--sage); margin-bottom:6px; line-height:1.4; }
   .tc-component .ing-list li{ padding:4px 2px; font-size:12.5px; }
+  .tc-footer{ margin-top:22px; padding-top:12px; border-top:1px dashed var(--line); font-size:11px; color:var(--ink-soft); text-align:center; }
 
   @media print{
     .sidebar, .bottom-nav, .scroll-top-btn, .toast-container, #setupBanner,
     .modal-close, .detail-actions-top, .servings-adjust button, #photoGallery,
     .avg-rating-pill, .no-print{ display:none !important; }
-    body{ background:#fff; }
+    body{ background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
     .overlay{ position:static; background:none; padding:0; opacity:1; visibility:visible; }
     .modal{ box-shadow:none; max-width:100%; }
     .detail-title{ padding-right:0; }
     @page{ size:A4 landscape; margin:12mm; }
     #cakeTechCardOverlay .modal{ max-width:none; padding:0; }
     #cakeTechCardOverlay .cake-techcard{ grid-template-columns:1fr 1fr; gap:26px; align-items:start; }
-    #cakeTechCardOverlay .tc-component{ break-inside:avoid; background:none; border-color:#ccc; }
+    #cakeTechCardOverlay .tc-component{ break-inside:avoid; background:none; }
+    #cakeTechCardOverlay .tc-header{ break-after:avoid; }
   }
 </style>
 </head>
