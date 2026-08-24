@@ -42,8 +42,17 @@ function defaultDraft(){
     creams: ['cheese', 'cheese'],
     coatSame: false,
     coat: 'glaze',
-    decor: 'berries'
+    decor: ['berries']
   };
+}
+
+// Декор теперь мультивыбор (можно сразу и ягоды, и посыпку) — draft.decor всегда массив
+// для новых/открытых черновиков, но у старых сохранённых тортов там мог остаться один
+// id строкой (старый формат) — нормализуем при чтении, чтобы не ломать их.
+function asDecorArray(decor){
+  if(Array.isArray(decor)) return decor;
+  if(!decor || decor==='none') return [];
+  return [decor];
 }
 
 // ---------- вкладка "Торты" (список) ----------
