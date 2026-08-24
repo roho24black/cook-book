@@ -802,6 +802,7 @@ export function renderTechCard(draft){
           ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
         </div>
         <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decor.id!=='none' ? ' · декор: '+escapeHtml(decor.label) : ''}</p>
+        ${stabilityWarning(draft) ? `<div class="cake-stability-tip" style="margin-top:12px;">⚠️ ${escapeHtml(stabilityWarning(draft))}</div>` : ''}
       </div>
       <div class="tc-col-right">
         <h4 class="tc-col-heading">Разбор по коржам</h4>
