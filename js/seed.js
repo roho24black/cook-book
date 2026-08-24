@@ -32,10 +32,14 @@ async function seedBatch(batchRecipes, flagField){
 // потому что seedBatch() просто выходил на первой строке. Здесь же каждый рецепт компонента
 // несёт свой стабильный componentId — сверяемся с базой и досеиваем только то, чего не хватает,
 // поэтому дописать новый вкус в cakeComponentSeed достаточно, ничего вручную чистить не нужно.
-async function seedCakeComponents(){
+//
+// existingRecipes передаётся уже ЗАГРУЖЕННЫМ (первый снимок onSnapshot в main.js), а не
+// читается отдельным getDocs() здесь — отдельный одноразовый запрос сразу после
+// signInAnonymously() ловил гонку с прогревом ID-токена (permission-denied), потому что
+// у getDocs(), в отличие от onSnapshot(), нет встроенного повтора при таком сбое.
+export async function seedMissingCakeComponents(existingRecipes){
   try {
-    const snap = await getDocs(recipesCol);
-    const existingIds = new Set(snap.docs.map(d => d.data().componentId).filter(Boolean));
+    const existingIds = new Set((existingRecipes||[]).map(r => r.componentId).filter(Boolean));
     const missing = cakeComponentSeed.filter(r => !existingIds.has(r.componentId));
     if (!missing.length) return;
     let batch = writeBatch(db);
@@ -53,7 +57,4 @@ async function seedCakeComponents(){
 export async function seedIfNeeded(){
   await seedBatch(seedRecipes, 'seeded');
   await seedBatch(seedRecipesV2, 'seededV2');
-  // Рецепты компонентов торта (коржи/крема/пропитки) — пишутся так же, как обычные рецепты,
-  // поэтому проходят только когда сидит автор (правила Firestore разрешают create только isAdmin()).
-  await seedCakeComponents();
 }
