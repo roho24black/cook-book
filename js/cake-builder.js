@@ -167,7 +167,8 @@ export function openCakeBuilder(existing){
         description: existing.description||'', recipeId: existing.recipeId||null,
         date: existing.date || todayISO(), status: existing.status || 'draft',
         layers: existing.layers, creams: existing.creams, coatSame: existing.coatSame,
-        coat: existing.coat, decor: asDecorArray(existing.decor)
+        coat: existing.coat, decor: asDecorArray(existing.decor), layerNotes: existing.layerNotes||[],
+        photos: existing.photos||[]
       }))
     : defaultDraft();
   document.getElementById('cakesOverlay').classList.remove('open');
