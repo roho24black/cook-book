@@ -384,6 +384,24 @@ document.getElementById('cakeCollapseAllBtn')?.addEventListener('click', ()=>{
   else { d.layers.forEach((_,i)=> collapsedLayers.add(i)); }
   renderCakeBuilder();
 });
+document.getElementById('cakeGuestsSuggestBtn')?.addEventListener('click', ()=>{
+  const guests = parseInt(document.getElementById('cakeGuestsInput').value);
+  if(!guests || guests<1){ showToast('Впиши число гостей'); return; }
+  const layerCount = store.cakeDraft.layers.length;
+  const factor = layerCount/4;
+  // ищем самый маленький диаметр из таблицы, который при текущем числе коржей
+  // даёт достаточно порций — если и максимальный не хватает, предлагаем его и предупреждаем
+  let suggested = CAKE_DIAMETERS[CAKE_DIAMETERS.length-1], enough = false;
+  for(const dm of CAKE_DIAMETERS){
+    const base = (CAKE_PORTIONS[dm].match(/\d+/g)||[]).map(Number);
+    const hi = Math.round((base[1]||base[0])*factor);
+    if(hi >= guests){ suggested = dm; enough = true; break; }
+  }
+  update(dr=> dr.layers.forEach(l=> l.diameter = suggested));
+  showToast(enough
+    ? `Поставил Ø${suggested} см на все коржи — должно хватить примерно на ${guests} гостей`
+    : `Даже Ø${suggested} см (максимум) впритык — при ${layerCount} коржах на ${guests} гостей маловато, добавь коржей`);
+});
 document.getElementById('cakeCoatSameRow').addEventListener('click', ()=> update(dr=> dr.coatSame = !dr.coatSame));
 document.getElementById('cakeDateInput').addEventListener('change', (e)=>{ store.cakeDraft.date = e.target.value; });
 document.getElementById('cakeOccasionInput').addEventListener('input', (e)=>{ store.cakeDraft.occasion = e.target.value; });
