@@ -267,6 +267,11 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     dr.layers.splice(idx,1);
     dr.creams.splice(Math.min(idx, dr.creams.length-1),1);
   });
+  else if(role==='duplicate-layer') update(dr=>{
+    if(dr.layers.length >= MAX_LAYERS) return;
+    dr.layers.splice(idx+1, 0, { ...dr.layers[idx] });
+    dr.creams.splice(idx, 0, dr.creams[idx] ?? dr.creams[dr.creams.length-1] ?? 'cheese');
+  });
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
   else if(role==='decor') update(dr=> dr.decor = value);
   else if(role==='move-layer') update(dr=>{
