@@ -340,6 +340,10 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     update(dr=>{ const val = dr.creams[idx]; dr.creams = dr.creams.map(()=> val); });
     showToast(`Крем «${findCream(store.cakeDraft.creams[0]).label}» применён ко всем стыкам`);
   }
+  else if(role==='apply-syrup-all'){
+    update(dr=>{ const syrup = dr.layers[idx].syrup; dr.layers.forEach(l=> l.syrup = syrup); });
+    showToast(`Пропитка «${findSyrup(store.cakeDraft.layers[0].syrup).label}» применена ко всем коржам`);
+  }
   else if(role==='apply-kind-all'){
     update(dr=>{ const { kind, variant } = dr.layers[idx]; dr.layers.forEach(l=>{ l.kind = kind; l.variant = variant; }); });
     const k = findKind(store.cakeDraft.layers[0].kind), v = findVariant(k, store.cakeDraft.layers[0].variant);
