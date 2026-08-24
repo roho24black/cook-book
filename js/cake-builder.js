@@ -588,8 +588,71 @@ export function computeCakeIngredients(draft){
   if(decor.ingredient) add(decor.ingredient[0], decor.ingredient[1]*kTop, decor.ingredient[2]);
 
   return Object.values(acc)
-    .map(i=> ({ name:i.name, unit:i.unit, qty: i.unit==='фл.'||i.unit==='стручок' ? Math.max(1,Math.round(i.qty)) : Math.round(round(i.qty, i.qty<30?5:10)) }))
+    .map(i=> ({ name:i.name, unit:i.unit, qty: roundAmt(i.qty, i.unit) }))
     .sort((a,b)=> a.name.localeCompare(b.name,'ru'));
+}
+
+function roundAmt(qty, unit){
+  return (unit==='фл.'||unit==='стручок') ? Math.max(1,Math.round(qty)) : Math.round(round(qty, qty<30?5:10));
+}
+
+function doughIngredientsFor(kind, variant, k){
+  const recipe = findComponentRecipe('dough:'+kind.id+':'+variant.id);
+  if(recipe && recipe.ingredients?.length) return recipe.ingredients.map(i=> ({ name:i.name, unit:i.unit, qty: roundAmt((i.qty||0)*k, i.unit) }));
+  const list = (kind.doughIngredients||[]).map(([name,amt,unit])=> ({ name, unit, qty: roundAmt(amt*k, unit) }));
+  if(variant.extra) list.push({ name:variant.extra[0], unit:variant.extra[2], qty: roundAmt(variant.extra[1]*k, variant.extra[2]) });
+  if(kind.onceIngredient) list.push({ name:kind.onceIngredient[0], unit:kind.onceIngredient[2], qty: roundAmt(kind.onceIngredient[1], kind.onceIngredient[2]) });
+  return list;
+}
+
+function syrupIngredientsFor(syrup, k){
+  const recipe = findComponentRecipe('syrup:'+syrup.id);
+  if(recipe && recipe.ingredients?.length) return recipe.ingredients.map(i=> ({ name:i.name, unit:i.unit, qty: roundAmt((i.qty||0)*k, i.unit) }));
+  if(!syrup.ingredient) return [];
+  const amt = syrup.fixed ? syrup.ingredient[1] : syrup.ingredient[1]*k;
+  return [{ name:syrup.ingredient[0], unit:syrup.ingredient[2], qty: roundAmt(amt, syrup.ingredient[2]) }];
+}
+
+function creamIngredientsFor(cream, k){
+  const recipe = findComponentRecipe('cream:'+cream.id);
+  if(recipe && recipe.ingredients?.length) return recipe.ingredients.map(i=> ({ name:i.name, unit:i.unit, qty: roundAmt((i.qty||0)*k, i.unit) }));
+  if(!cream.ingredient) return [];
+  return [{ name:cream.ingredient[0], unit:cream.ingredient[2], qty: roundAmt(cream.ingredient[1]*k, cream.ingredient[2]) }];
+}
+
+// Разбор по компонентам для техкарты: у каждого коржа — СВОЙ список ингредиентов, честно
+// посчитанный под ЕГО диаметр (видно, что Ø16 и Ø26 требуют разного количества муки), а не
+// один общий "слепок". Крем, повторяющийся в нескольких стыках, показан ОДНИМ блоком на
+// суммарный объём — с пометкой, между какими коржами он идёт, чтобы было понятно, что месить
+// его нужно один раз сразу на все стыки, а не отдельными порциями.
+export function computeCakeIngredientsBreakdown(draft){
+  const layers = draft.layers.map((layer, i)=>{
+    const kind = findKind(layer.kind);
+    const variant = findVariant(kind, layer.variant);
+    const k = Math.pow(layer.diameter/20, 2);
+    const syrup = findSyrup(layer.syrup);
+    const ingredients = doughIngredientsFor(kind, variant, k).concat(syrup.id!=='none' ? syrupIngredientsFor(syrup, k) : []);
+    return { index:i, kind, variant, diameter:layer.diameter, syrupLabel: syrup.id!=='none' ? syrup.label : null, ingredients };
+  });
+
+  const creamGaps = {}; // creamId -> [gapIndex,...]
+  draft.creams.forEach((creamId, i)=>{ (creamGaps[creamId] = creamGaps[creamId]||[]).push(i); });
+  const creamGroups = Object.entries(creamGaps).map(([creamId, gaps])=>{
+    const cream = findCream(creamId);
+    let k = 0;
+    gaps.forEach(i=>{ const a=draft.layers[i], b=draft.layers[i+1]; k += Math.pow(((a.diameter+b.diameter)/2)/20, 2); });
+    return { label: cream.label, gapsText: gaps.map(i=> `${i+1}→${i+2}`).join(', '), ingredients: creamIngredientsFor(cream, k) };
+  });
+
+  const maxD = Math.max(...draft.layers.map(l=>l.diameter));
+  const coat = draft.coatSame ? null : findCoat(draft.coat);
+  const coatIngredients = coat?.ingredient ? [{ name:coat.ingredient[0], unit:coat.ingredient[2], qty: roundAmt(coat.ingredient[1]*Math.pow(maxD/20,2), coat.ingredient[2]) }] : [];
+
+  const topD = draft.layers[draft.layers.length-1].diameter;
+  const decor = findDecor(draft.decor);
+  const decorIngredients = decor.ingredient ? [{ name:decor.ingredient[0], unit:decor.ingredient[2], qty: roundAmt(decor.ingredient[1]*Math.pow(topD/20,2), decor.ingredient[2]) }] : [];
+
+  return { layers, creamGroups, coat: coatIngredients.length ? {label:coat.label, ingredients:coatIngredients} : null, decor: decorIngredients.length ? {label:decor.label, ingredients:decorIngredients} : null };
 }
 
 // ---------- автогенерация инструкции ----------
