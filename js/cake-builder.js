@@ -365,7 +365,13 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     showToast(`«${k.label} — ${v.label}» применено ко всем коржам`);
   }
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
-  else if(role==='decor') update(dr=> dr.decor = value);
+  else if(role==='decor') update(dr=>{
+    if(value==='none'){ dr.decor = []; return; }
+    const arr = asDecorArray(dr.decor).filter(v=>v!=='none');
+    const at = arr.indexOf(value);
+    if(at>=0) arr.splice(at,1); else arr.push(value);
+    dr.decor = arr;
+  });
   else if(role==='move-layer') update(dr=>{
     const dir = el.dataset.dir;
     const j = dir==='up' ? idx-1 : idx+1;
@@ -378,7 +384,7 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     if(!preset) return;
     dr.layers = JSON.parse(JSON.stringify(preset.layers));
     dr.creams = JSON.parse(JSON.stringify(preset.creams));
-    dr.coatSame = preset.coatSame; dr.coat = preset.coat; dr.decor = preset.decor;
+    dr.coatSame = preset.coatSame; dr.coat = preset.coat; dr.decor = asDecorArray(preset.decor);
     collapsedLayers.clear();
   });
 });
