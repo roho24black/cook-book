@@ -329,6 +329,10 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     dr.layers.splice(idx+1, 0, { ...dr.layers[idx] });
     dr.creams.splice(idx, 0, dr.creams[idx] ?? dr.creams[dr.creams.length-1] ?? 'cheese');
   });
+  else if(role==='toggle-layer'){
+    if(collapsedLayers.has(idx)) collapsedLayers.delete(idx); else collapsedLayers.add(idx);
+    renderCakeBuilder();
+  }
   else if(role==='apply-cream-all'){
     update(dr=>{ const val = dr.creams[idx]; dr.creams = dr.creams.map(()=> val); });
     showToast(`Крем «${findCream(store.cakeDraft.creams[0]).label}» применён ко всем стыкам`);
@@ -361,6 +365,13 @@ document.getElementById('cakeAddLayerBtn').addEventListener('click', ()=> update
   dr.layers.push({ kind:last.kind, variant:last.variant, diameter:last.diameter, syrup:last.syrup });
   dr.creams.push(dr.creams[dr.creams.length-1] || 'cheese');
 }));
+document.getElementById('cakeCollapseAllBtn')?.addEventListener('click', ()=>{
+  const d = store.cakeDraft;
+  if(!d) return;
+  if(collapsedLayers.size >= d.layers.length){ collapsedLayers.clear(); }
+  else { d.layers.forEach((_,i)=> collapsedLayers.add(i)); }
+  renderCakeBuilder();
+});
 document.getElementById('cakeCoatSameRow').addEventListener('click', ()=> update(dr=> dr.coatSame = !dr.coatSame));
 document.getElementById('cakeDateInput').addEventListener('change', (e)=>{ store.cakeDraft.date = e.target.value; });
 document.getElementById('cakeOccasionInput').addEventListener('input', (e)=>{ store.cakeDraft.occasion = e.target.value; });
