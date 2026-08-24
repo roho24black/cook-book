@@ -3,7 +3,7 @@ import { seedRecipesV2 } from '../recipes-seed-v2.js';
 import { cakeComponentSeed } from './cake-component-seed.js';
 import { db, recipesCol } from './firebase-init.js';
 import {
-  doc, getDoc, setDoc, writeBatch
+  doc, getDoc, getDocs, setDoc, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 async function seedBatch(batchRecipes, flagField){
