@@ -132,7 +132,7 @@ export function renderCakesList(){
       if(!cake) return;
       openCakeBuilderFromFields({
         title: '', occasion: '', description: '',
-        layers: cake.layers, creams: cake.creams, coatSame: cake.coatSame, coat: cake.coat, decor: cake.decor
+        layers: cake.layers, creams: cake.creams, coatSame: cake.coatSame, coat: cake.coat, decor: asDecorArray(cake.decor)
       });
       showToast('Собрал копию — поменяй дату и повод под новый случай');
     });
@@ -167,7 +167,7 @@ export function openCakeBuilder(existing){
         description: existing.description||'', recipeId: existing.recipeId||null,
         date: existing.date || todayISO(), status: existing.status || 'draft',
         layers: existing.layers, creams: existing.creams, coatSame: existing.coatSame,
-        coat: existing.coat, decor: existing.decor
+        coat: existing.coat, decor: asDecorArray(existing.decor)
       }))
     : defaultDraft();
   document.getElementById('cakesOverlay').classList.remove('open');
@@ -297,7 +297,10 @@ function renderCakeBuilder(){
   ).join('');
 
   // ---- декор ----
-  document.getElementById('cakeDecorChips').innerHTML = CAKE_DECORS.map(x=> chip({active: d.decor===x.id, label:x.label, role:'decor', value:x.id})).join('');
+  { const selectedDecor = asDecorArray(d.decor);
+    document.getElementById('cakeDecorChips').innerHTML = CAKE_DECORS.map(x=>
+      chip({active: x.id==='none' ? selectedDecor.length===0 : selectedDecor.includes(x.id), label:x.label, role:'decor', value:x.id})
+    ).join(''); }
 
   document.getElementById('cakeDateInput').value = d.date;
   document.getElementById('cakeOccasionInput').value = d.occasion;
