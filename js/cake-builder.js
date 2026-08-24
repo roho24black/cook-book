@@ -166,10 +166,11 @@ export function openCakeBuilder(existing){
 // Открыть конструктор сразу с готовым набором полей — пресет или разбор импорта от Клода.
 // Всегда как НОВЫЙ торт (черновик без id), даже если пришло из формы редактирования кнопкой "Импорт".
 export function openCakeBuilderFromFields(fields){
-  store.cakeDraft = { ...defaultDraft(), ...JSON.parse(JSON.stringify(fields)), id: null };
+  store.cakeDraft = { ...defaultDraft(), ...JSON.parse(JSON.stringify(fields)), id: null, recipeId: null };
   document.getElementById('cakesOverlay').classList.remove('open');
   document.getElementById('cakeBuilderOverlay').classList.add('open');
   document.getElementById('cakeDeleteBtn').style.display = 'none';
+  collapsedLayers.clear();
   renderCakeBuilder();
 }
 export function closeCakeBuilder(){
