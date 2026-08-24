@@ -8,8 +8,9 @@ import { store } from './store.js';
 import { db, cakesCol, recipesCol } from './firebase-init.js';
 import { addDoc, updateDoc, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { escapeHtml, fmtQty, showToast, showConfirm } from './utils.js';
-import { setBottomTab } from './bottom-nav.js';
+import { setBottomTab, goToRecipesTab } from './bottom-nav.js';
 import { startCookMode } from './cooking-mode.js';
+import { openDetail } from './detail.js';
 import {
   CAKE_DIAMETERS, CAKE_PORTIONS, CAKE_KINDS, CAKE_SYRUPS, CAKE_CREAMS, CAKE_COATS, CAKE_DECORS, CAKE_STATUSES, CAKE_PRESETS,
   findKind, findVariant, findSyrup, findCream, findCoat, findDecor
