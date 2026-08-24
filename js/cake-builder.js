@@ -163,6 +163,9 @@ function renderCakeBuilder(){
   document.getElementById('cakeSummaryTitle').textContent = summaryTitle(d);
   document.getElementById('cakePortions').textContent = '≈ ' + estimatePortions(d) + ' порций';
   document.getElementById('cakeSummarySub').textContent = summarySub(d);
+  const warning = stabilityWarning(d);
+  const warnEl = document.getElementById('cakeStabilityTip');
+  if(warnEl){ warnEl.textContent = warning ? '⚠️ ' + warning : ''; warnEl.style.display = warning ? 'block' : 'none'; }
 
   // ---- быстрый старт (только для нового торта, не при редактировании) ----
   document.getElementById('cakePresetsRow').innerHTML = !d.id ? `
@@ -527,6 +530,18 @@ export function estimatePortions(draft){
   const lo = Math.max(1, Math.round(base[0]*factor));
   const hi = Math.max(lo+1, Math.round(base[1]*factor));
   return `${lo}–${hi}`;
+}
+
+// Мягкая подсказка про устойчивость: если корж где-то шире того, что стоит под ним,
+// торт на срезе честно так и нарисуется (ступенька наружу) — но в реальности такая
+// конструкция норовит завалиться, стоит предупредить, а не молча позволить это собрать.
+function stabilityWarning(draft){
+  for(let i=0;i<draft.layers.length-1;i++){
+    if(draft.layers[i+1].diameter > draft.layers[i].diameter){
+      return `Корж ${i+2} (Ø${draft.layers[i+1].diameter} см) шире коржа ${i+1} (Ø${draft.layers[i].diameter} см) под ним — такой торт может быть неустойчивым. Обычно каждый следующий ярус делают уже или равным предыдущему.`;
+    }
+  }
+  return null;
 }
 
 function summarySub(draft){
