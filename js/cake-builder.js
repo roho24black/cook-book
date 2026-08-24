@@ -359,89 +359,152 @@ document.getElementById('cakeImportParseBtn')?.addEventListener('click', ()=>{
 });
 
 // ---------- разрез (иллюстрация) ----------
-function slabHtml(width, height, color, speckColor, thin, syrupColor){
-  const speck = speckColor ? `background-image:radial-gradient(${speckColor} 1.1px, transparent 1.2px);background-size:8px 8px;` : '';
-  const thinTexture = thin ? `background-image:repeating-linear-gradient(0deg, rgba(74,47,34,.14) 0, rgba(74,47,34,.14) 1.5px, transparent 1.5px, transparent 5px);` : '';
-  // Пропитка рисуется отдельной полосой у верхнего края коржа (а не еле заметным подмесом
-  // в общий цвет) — иначе на срезе её реально не видно, особенно на тёмных коржах.
-  const soak = syrupColor ? `<div class="cake-soak-stripe" style="background:${syrupColor}"></div>` : '';
-  return `<div class="cake-slab" style="width:${width}px;height:${height}px;background:${color};${speck}${thinTexture}position:relative;">${soak}</div>`;
-}
-function tartletHtml(width, height, crustColor, fillColor){
-  const rimIn = Math.round(width*0.16);
-  return `<div class="cake-tartlet" style="width:${width}px;height:${height}px;background:${crustColor};
-    clip-path:polygon(0% 0%,100% 0%,${100-Math.round(rimIn/width*100)}% 100%,${Math.round(rimIn/width*100)}% 100%)">
-    <div class="cake-tartlet-fill" style="background:${fillColor}"></div>
-  </div>`;
-}
-function decorRowHtml(decorId, width){
-  const items = [];
+// Разрез рисуется как единый SVG (а не стопка div'ов с разной шириной) — так покрытие
+// честно облегает силуэт коржей, даже когда диаметры разных коржей отличаются (ярусный
+// торт), без рассинхрона между "оболочкой" и внутренними блоками, который выглядел криво.
+function decorShapes(decorId, cx, topY, width){
+  const shapes = [];
+  const put = (x,y,el)=> shapes.push(el.replace('{x}',x.toFixed(1)).replace('{y}',y.toFixed(1)));
   if(decorId==='berries'){
     const cs=['#8E2B2B','#5E2340','#A93B54','#7A2E2E','#3F5730'];
     const n = Math.max(3, Math.round(width/26));
-    for(let i=0;i<n;i++) items.push(`<span style="width:${9+(i%3)}px;height:${9+(i%3)}px;border-radius:50%;background:${cs[i%5]};align-self:${i%2?'flex-end':'center'}"></span>`);
+    for(let i=0;i<n;i++){
+      const x = cx - width/2 + (width/(n-1||1))*i;
+      const r = 4.5 + (i%3);
+      const y = topY - r - (i%2? -2:2);
+      shapes.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${cs[i%5]}"/>`);
+    }
   } else if(decorId==='shavings'){
-    const n = Math.max(4, Math.round(width/16));
-    for(let i=0;i<n;i++) items.push(`<span style="width:4px;height:${10+(i%4)*4}px;border-radius:2px;background:${i%2?'#3E2418':'#5A3520'};transform:rotate(${i%2?18:-14}deg);margin-left:-1px"></span>`);
+    const n = Math.max(5, Math.round(width/14));
+    for(let i=0;i<n;i++){
+      const x = cx - width/2 + (width/(n-1||1))*i;
+      const h = 9+(i%4)*4;
+      const rot = i%2? 16:-14;
+      shapes.push(`<rect x="${(x-2).toFixed(1)}" y="${(topY-h).toFixed(1)}" width="4" height="${h}" rx="2" fill="${i%2?'#3E2418':'#5A3520'}" transform="rotate(${rot} ${x.toFixed(1)} ${(topY-h/2).toFixed(1)})"/>`);
+    }
   } else if(decorId==='sprinkles'){
     const cs=['#C68A2E','#7A2E2E','#586B4D','#E5A2AC','#F2DFA6'];
-    const n = Math.max(6, Math.round(width/11));
-    for(let i=0;i<n;i++) items.push(`<span style="width:3.5px;height:8px;border-radius:2px;background:${cs[i%5]};transform:rotate(${(i*37)%80-40}deg);align-self:${i%3?'flex-end':'center'}"></span>`);
+    const n = Math.max(7, Math.round(width/10));
+    for(let i=0;i<n;i++){
+      const x = cx - width/2 + (width/(n-1||1))*i;
+      const y = topY - 5 - (i%3)*3;
+      const rot = (i*37)%80-40;
+      shapes.push(`<rect x="${(x-1.7).toFixed(1)}" y="${(y-4).toFixed(1)}" width="3.4" height="8" rx="1.5" fill="${cs[i%5]}" transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})"/>`);
+    }
   } else if(decorId==='caramel'){
     const n = Math.max(4, Math.round(width/20));
-    for(let i=0;i<n;i++) items.push(`<span style="width:5px;height:${12+(i%3)*7}px;border-radius:3px 3px 4px 4px;background:linear-gradient(180deg,#D9A03F,#B06E20);align-self:flex-end"></span>`);
+    for(let i=0;i<n;i++){
+      const x = cx - width/2 + (width/(n-1||1))*i;
+      const h = 12+(i%3)*7;
+      shapes.push(`<rect x="${(x-2.5).toFixed(1)}" y="${(topY-h).toFixed(1)}" width="5" height="${h}" rx="2.5" fill="#C7862C"/>`);
+    }
   }
-  if(!items.length) return '';
-  return `<div class="cake-decor-row" style="width:${width}px">${items.join('')}</div>`;
+  return shapes.join('');
 }
 
 export function buildCutSectionHtml(draft, scale){
   const layers = draft.layers;
   const n = layers.length;
-  const widths = layers.map(l=> Math.round((92 + (l.diameter-16)*7.2) * scale));
-  const maxWidth = Math.max(...widths);
+  const naked = !draft.coatSame && draft.coat === 'naked';
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
+  const coatPad = naked ? 1.5 : Math.max(4, 6*scale);
 
-  const pieces = []; // снизу вверх
+  const widths = layers.map(l=> Math.round((92 + (l.diameter-16)*7.2) * scale));
+  const heights = layers.map(l=> Math.max(4, Math.round(findKind(l.kind).heightPx * scale)));
+  const gapH = Math.max(3, Math.round((11 - Math.min(6,n)) * scale));
+
+  // y считаем снизу вверх (0 = основание торта на тарелке), потом переводим в координаты SVG
+  let y = 0;
+  const slabBands = []; // {i, y0, y1, width}
+  const gapBands = [];  // {y0, y1, width}
   for(let i=0;i<n;i++){
-    const layer = layers[i];
+    slabBands.push({ i, y0:y, y1:y+heights[i], width:widths[i] });
+    y += heights[i];
+    if(i < n-1){ gapBands.push({ y0:y, y1:y+gapH, width:Math.min(widths[i], widths[i+1]) }); y += gapH; }
+  }
+  const stackH = y;
+  const maxWidth = Math.max(...widths);
+  const svgW = maxWidth + coatPad*2 + 24;
+  const decorH = 24*scale;
+  const plateH = 7*scale;
+  const topPad = 10*scale;
+  const svgH = decorH + topPad + stackH + coatPad*2 + plateH + 6;
+  const cx = svgW/2;
+  const flip = (yUp)=> svgH - plateH - (yUp); // низ стопки стоит чуть выше тарелки
+
+  let svg = '';
+
+  // покрытие/обводка — по одному прямоугольнику на корж, растянутому до середины
+  // соседних кремовых зазоров, поэтому у одинаковых по ширине соседей шов не виден,
+  // а на смене диаметра получается аккуратная "ступенька", как у настоящего ярусного торта
+  if(!naked){
+    slabBands.forEach((b, idx)=>{
+      const kind = findKind(layers[b.i].kind);
+      if(kind.shape === 'tartlet') return;
+      const below = idx>0 ? gapBands[idx-1] : null;
+      const above = idx<slabBands.length-1 ? gapBands[idx] : null;
+      const y0 = below ? (below.y0+below.y1)/2 : 0;
+      const y1 = above ? (above.y0+above.y1)/2 : b.y1 + coatPad*1.6;
+      const w = b.width + coatPad*2;
+      const h = y1 - y0;
+      svg += `<rect x="${(cx-w/2).toFixed(1)}" y="${flip(y1).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${coat.c || '#F1E2C6'}"/>`;
+    });
+  }
+
+  // кремовые прослойки
+  gapBands.forEach((g,i)=>{
+    const cream = findCream(draft.creams[i] || draft.creams[draft.creams.length-1] || 'cheese');
+    const kindBelow = findKind(layers[i].kind);
+    if(kindBelow.shape === 'tartlet') return; // у тарталетки крем уже показан как начинка внутри чаши
+    svg += `<rect x="${(cx-g.width/2).toFixed(1)}" y="${flip(g.y1).toFixed(1)}" width="${g.width.toFixed(1)}" height="${(g.y1-g.y0).toFixed(1)}" fill="${cream.c}"/>`;
+  });
+
+  // сами коржи
+  slabBands.forEach((b, idx)=>{
+    const layer = layers[b.i];
     const kind = findKind(layer.kind);
     const variant = findVariant(kind, layer.variant);
     const syrup = findSyrup(layer.syrup);
-    const w = widths[i];
-    const h = Math.max(4, Math.round(kind.heightPx * scale));
+    const w = b.width, h = b.y1-b.y0;
+    const x = cx - w/2, yTop = flip(b.y1);
+    const rx = Math.min(4, h/3, w/12);
+
     if(kind.shape === 'tartlet'){
-      const fillCream = i < draft.creams.length ? findCream(draft.creams[i]) : (draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat));
-      pieces.push(tartletHtml(w, h, variant.c, fillCream.c || '#F1E2C6'));
+      const fillCream = b.i < draft.creams.length ? findCream(draft.creams[b.i]) : (draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : coat);
+      const rim = w*0.14;
+      const pts = [[x,yTop],[x+w,yTop],[x+w-rim,yTop+h],[x+rim,yTop+h]].map(p=>p.join(',')).join(' ');
+      svg += `<polygon points="${pts}" fill="${variant.c}"/>`;
+      svg += `<rect x="${(x+rim*1.15).toFixed(1)}" y="${(yTop+h*0.16).toFixed(1)}" width="${(w-rim*2.3).toFixed(1)}" height="${(h*0.8).toFixed(1)}" rx="2" fill="${fillCream.c||'#F1E2C6'}"/>`;
     } else {
-      pieces.push(slabHtml(w, h, variant.c, variant.speck, kind.thin, syrup.c || null));
+      svg += `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${rx.toFixed(1)}" fill="${variant.c}"/>`;
+      if(variant.speck){
+        const dots = Math.max(3, Math.round(w/16));
+        for(let k=0;k<dots;k++){
+          const dx = x + (w/(dots+1))*(k+1) + (idx%2?2:-2);
+          const dy = yTop + h*0.35 + (k%2)*h*0.3;
+          svg += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="1.2" fill="${variant.speck}"/>`;
+        }
+      }
+      if(kind.thin){
+        for(let ty=yTop+3; ty<yTop+h-1; ty+=4.5){
+          svg += `<line x1="${x.toFixed(1)}" y1="${ty.toFixed(1)}" x2="${(x+w).toFixed(1)}" y2="${ty.toFixed(1)}" stroke="rgba(74,47,34,.16)" stroke-width="1"/>`;
+        }
+      }
+      if(syrup.c){
+        const soakH = Math.max(3, h*0.3);
+        svg += `<rect x="${x.toFixed(1)}" y="${yTop.toFixed(1)}" width="${w.toFixed(1)}" height="${soakH.toFixed(1)}" rx="${rx.toFixed(1)}" fill="${syrup.c}" opacity=".72"/>`;
+      }
     }
+  });
 
-    if(i < n-1 && kind.shape !== 'tartlet'){
-      const cream = findCream(draft.creams[i] || draft.creams[draft.creams.length-1] || 'cheese');
-      const creamH = Math.max(3, Math.round((11 - Math.min(6,n)) * scale));
-      pieces.push(`<div style="width:${w}px;height:${creamH}px;background:${cream.c};box-shadow:inset 0 0 0 .5px rgba(51,38,31,.08)"></div>`);
-    }
-  }
-  pieces.reverse(); // верхний корж — первым в DOM (flex-direction: column)
+  const topLayerWidth = widths[widths.length-1];
+  const decorTopY = flip(stackH) - coatPad*1.6;
+  svg += decorShapes(draft.decor, cx, decorTopY, topLayerWidth);
 
-  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
-  const naked = !draft.coatSame && draft.coat === 'naked';
-  const pad = naked ? 0 : Math.round(6*scale);
-  const shellStyle = naked ? '' : `padding:${pad}px;background:${coat.c||'#F1E2C6'};border-radius:${Math.round(16*scale)}px ${Math.round(16*scale)}px ${Math.round(7*scale)}px ${Math.round(7*scale)}px;box-shadow:0 ${Math.round(4*scale)}px ${Math.round(12*scale)}px rgba(51,38,31,.14);`;
-  const innerBorder = naked ? `border:1px solid rgba(51,38,31,.18);border-radius:${Math.round(8*scale)}px;` : `border-radius:${Math.round(8*scale)}px;overflow:hidden;`;
+  const plateW = maxWidth + coatPad*2 + 26;
+  svg += `<rect x="${(cx-plateW/2).toFixed(1)}" y="${(svgH-plateH).toFixed(1)}" width="${plateW.toFixed(1)}" height="${plateH.toFixed(1)}" rx="${(plateH/2).toFixed(1)}" fill="#E3D4B8"/>`;
 
-  const decor = decorRowHtml(draft.decor, maxWidth);
-  const plateW = maxWidth + Math.round(pad*2) + Math.round(30*scale);
-
-  return `<div class="cake-cutsection" style="align-items:center;">
-    ${decor}
-    <div style="${shellStyle}">
-      <div style="width:${maxWidth}px;display:flex;flex-direction:column;align-items:center;${innerBorder}">
-        ${pieces.join('')}
-      </div>
-    </div>
-    <div class="cake-plate" style="width:${plateW}px;height:${Math.round(6*scale)}px"></div>
-  </div>`;
+  return `<svg class="cake-cutsection-svg" viewBox="0 0 ${svgW.toFixed(1)} ${svgH.toFixed(1)}" width="${svgW.toFixed(0)}" height="${svgH.toFixed(0)}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
 }
 
 // ---------- расчёты ----------
