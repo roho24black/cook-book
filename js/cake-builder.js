@@ -507,10 +507,19 @@ export function buildCutSectionHtml(draft, scale){
 }
 
 // ---------- расчёты ----------
+// Таблица CAKE_PORTIONS откалибрована на "стандартный" торт из 4 коржей — если коржей
+// заметно больше или меньше (или они многоярусные разной ширины), масштабируем линейно
+// по количеству коржей, а не только по диаметру самого широкого. Раньше 2-коржовый и
+// 6-коржовый торт одного диаметра показывали одинаковый выход, что неверно.
 export function estimatePortions(draft){
   const widest = Math.max(...draft.layers.map(l=>l.diameter));
   const nearest = CAKE_DIAMETERS.reduce((a,b)=> Math.abs(b-widest)<Math.abs(a-widest)?b:a);
-  return CAKE_PORTIONS[nearest];
+  const base = (CAKE_PORTIONS[nearest].match(/\d+/g)||[]).map(Number);
+  if(base.length<2) return CAKE_PORTIONS[nearest];
+  const factor = draft.layers.length / 4;
+  const lo = Math.max(1, Math.round(base[0]*factor));
+  const hi = Math.max(lo+1, Math.round(base[1]*factor));
+  return `${lo}–${hi}`;
 }
 
 function summarySub(draft){
