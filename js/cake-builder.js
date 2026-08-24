@@ -552,8 +552,11 @@ export function computeCakeIngredients(draft){
     .sort((a,b)=> a.name.localeCompare(b.name,'ru'));
 }
 
+const COUNT_UNITS = new Set(['шт','фл.','стручок']);
 function roundAmt(qty, unit){
-  return (unit==='фл.'||unit==='стручок') ? Math.max(1,Math.round(qty)) : Math.round(round(qty, qty<30?5:10));
+  // Штучные единицы округляются до целого (минимум 1 — не бывает "0 яиц"), а не до
+  // ближайших 5/10, иначе маленький корж Ø16 см округлял бы 0.6 яйца вверх аж до 5.
+  return COUNT_UNITS.has(unit) ? Math.max(1,Math.round(qty)) : Math.round(round(qty, qty<30?5:10));
 }
 
 function doughIngredientsFor(kind, variant, k){
