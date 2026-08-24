@@ -351,6 +351,7 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     const j = dir==='up' ? idx-1 : idx+1;
     if(j<0 || j>=dr.layers.length) return;
     [dr.layers[idx], dr.layers[j]] = [dr.layers[j], dr.layers[idx]];
+    if(collapsedLayers.has(idx) !== collapsedLayers.has(j)) collapsedLayers.clear();
   });
   else if(role==='preset') update(dr=>{
     const preset = CAKE_PRESETS.find(p=>p.id===value);
@@ -358,6 +359,7 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     dr.layers = JSON.parse(JSON.stringify(preset.layers));
     dr.creams = JSON.parse(JSON.stringify(preset.creams));
     dr.coatSame = preset.coatSame; dr.coat = preset.coat; dr.decor = preset.decor;
+    collapsedLayers.clear();
   });
 });
 
