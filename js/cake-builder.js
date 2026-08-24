@@ -678,7 +678,7 @@ export function buildCutSectionHtml(draft, scale){
 
   const topLayerWidth = widths[widths.length-1];
   const decorTopY = (topHaloY!==null ? topHaloY - domeH : flip(stackH)) - coatPad*0.6;
-  svg += decorShapes(draft.decor, cx, decorTopY, topLayerWidth);
+  asDecorArray(draft.decor).forEach(id=> svg += decorShapes(id, cx, decorTopY, topLayerWidth));
 
   const plateW = maxWidth + coatPad*2 + 26;
   svg += `<rect x="${(cx-plateW/2).toFixed(1)}" y="${(svgH-plateH).toFixed(1)}" width="${plateW.toFixed(1)}" height="${plateH.toFixed(1)}" rx="${(plateH/2).toFixed(1)}" fill="#E3D4B8"/>`;
@@ -718,8 +718,8 @@ function summarySub(draft){
   const kinds = Array.from(new Set(draft.layers.map(l=> findKind(l.kind).label))).join(' + ');
   const uniqueCreams = Array.from(new Set(draft.creams.map(c=> findCream(c).label.toLowerCase())));
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
-  const decor = findDecor(draft.decor);
-  return `${kinds} · ${uniqueCreams.join(', ')} · ${coat.label.toLowerCase()}${decor.id==='none'?'':' · '+decor.label.toLowerCase()}`;
+  const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
+  return `${kinds} · ${uniqueCreams.join(', ')} · ${coat.label.toLowerCase()}${decorLabel?' · '+decorLabel:''}`;
 }
 
 function round(v, step){ step = step||10; return Math.max(step, Math.round(v/step)*step); }
