@@ -1288,7 +1288,6 @@ function tcBg(ctx, C, W, H){
 }
 
 // ---- альбомная A4: рисунок+описание слева, разбор по коржам/кремам справа ----
-function landscapeContentHeight(){ return 0; } // формат фиксированной высоты (A4), не растёт от контента
 function drawLandscapeCard(ctx, C, W, H, model, img){
   tcBg(ctx, C, W, H);
   ctx.strokeStyle = C.frame; ctx.lineWidth = 3; ctx.strokeRect(20,20,W-40,H-40);
