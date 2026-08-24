@@ -297,6 +297,9 @@ function renderCakeBuilder(){
   const ingredients = computeCakeIngredients(d);
   document.getElementById('cakeBuyCount').textContent = ingredients.length + ' позиций';
   document.getElementById('cakeBuyPreview').textContent = ingredients.slice(0,4).map(i=>i.name.toLowerCase()).join(', ') + (ingredients.length>4 ? ` и ещё ${ingredients.length-4}` : '');
+
+  const costEl = document.getElementById('cakeCostEstimate');
+  if(costEl) costEl.innerHTML = `💰 Ориентировочно продукты: <b>≈${estimateCakeCost(d)} ₽</b> <span style="opacity:.7;">(прикидка по средним ценам, не смета)</span>`;
 }
 
 // делегирование кликов — один слушатель на всю форму конструктора, элементы перерисовываются целиком
