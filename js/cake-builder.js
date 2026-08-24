@@ -229,16 +229,10 @@ function renderCakeBuilder(){
         </div>
         ${d.creams.length>=2 ? `<button type="button" class="shop-link-btn" data-role="apply-cream-all" data-idx="${i}" style="margin-top:7px;">↧ Такой же крем на все стыки</button>` : ''}
       </div>` : '';
-    return `<div class="cake-layer-card">
-      <div class="cake-layer-head">
-        <span class="cake-layer-num">Корж ${i+1}${isFirst?' · нижний':(isLast?' · верхний':'')}</span>
-        <div style="display:flex; gap:4px; align-items:center;">
-          ${!isFirst ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="up" title="Поднять выше">↑</button>` : ''}
-          ${!isLast ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="down" title="Опустить ниже">↓</button>` : ''}
-          ${d.layers.length < MAX_LAYERS ? `<button type="button" class="cake-move-btn" data-role="duplicate-layer" data-idx="${i}" title="Продублировать этот корж">⧉</button>` : ''}
-          ${d.layers.length > MIN_LAYERS ? `<button type="button" class="row-remove" data-role="remove-layer" data-idx="${i}">×</button>` : ''}
-        </div>
-      </div>
+    const isCollapsed = collapsedLayers.has(i);
+    const syrupLabel = findSyrup(layer.syrup);
+    const summaryLine = `Ø${layer.diameter} см · ${kind.label} — ${variant.label}${syrupLabel.id!=='none' ? ' · пропитка: '+syrupLabel.label.toLowerCase() : ''}`;
+    const detailHtml = isCollapsed ? `<div class="cake-layer-collapsed-summary" data-role="toggle-layer" data-idx="${i}">${escapeHtml(summaryLine)}</div>` : `
       <div class="cake-field-label">Диаметр, см</div>
       <div class="cake-chip-row">
         ${CAKE_DIAMETERS.map(dm=> chip({active: layer.diameter===dm, label:String(dm), role:'layer-diameter', idx:i, value:dm})).join('')}
@@ -255,7 +249,21 @@ function renderCakeBuilder(){
       <div class="cake-field-label">Пропитка этого коржа</div>
       <div class="cake-chip-row">
         ${CAKE_SYRUPS.map(s=> chip({active: layer.syrup===s.id, label:s.label, role:'layer-syrup', idx:i, value:s.id, dot:s.c})).join('')}
+      </div>`;
+    return `<div class="cake-layer-card">
+      <div class="cake-layer-head">
+        <span class="cake-layer-num" data-role="toggle-layer" data-idx="${i}" style="cursor:pointer;">
+          <span style="display:inline-block; transition:transform .15s; transform:rotate(${isCollapsed?-90:0}deg);">▾</span>
+          Корж ${i+1}${isFirst?' · нижний':(isLast?' · верхний':'')}
+        </span>
+        <div style="display:flex; gap:4px; align-items:center;">
+          ${!isFirst ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="up" title="Поднять выше">↑</button>` : ''}
+          ${!isLast ? `<button type="button" class="cake-move-btn" data-role="move-layer" data-idx="${i}" data-dir="down" title="Опустить ниже">↓</button>` : ''}
+          ${d.layers.length < MAX_LAYERS ? `<button type="button" class="cake-move-btn" data-role="duplicate-layer" data-idx="${i}" title="Продублировать этот корж">⧉</button>` : ''}
+          ${d.layers.length > MIN_LAYERS ? `<button type="button" class="row-remove" data-role="remove-layer" data-idx="${i}">×</button>` : ''}
+        </div>
       </div>
+      ${detailHtml}
       ${gapHtml}
     </div>`;
   }).join('');
