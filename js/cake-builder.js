@@ -1190,28 +1190,186 @@ function techCardText(draft){
   return lines.join('\n');
 }
 
-function svgStringToPngBlob(svgString){
+function loadImageFromSvg(svgString){
   return new Promise((resolve)=>{
     try{
       const svgBlob = new Blob([svgString], { type:'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
       const img = new Image();
-      img.onload = ()=>{
-        const scale = 3;
-        const w = (img.naturalWidth || 300) * scale, h = (img.naturalHeight || 300) * scale;
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#F0E7D4';
-        ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-        URL.revokeObjectURL(url);
-        canvas.toBlob(b=> resolve(b), 'image/png');
-      };
+      img.onload = ()=>{ URL.revokeObjectURL(url); resolve(img); };
       img.onerror = ()=>{ URL.revokeObjectURL(url); resolve(null); };
       img.src = url;
     } catch(e){ resolve(null); }
   });
+}
+
+function tcWrapText(ctx, text, maxWidth){
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  words.forEach(w=>{
+    const test = cur ? cur+' '+w : w;
+    if(cur && ctx.measureText(test).width > maxWidth){ lines.push(cur); cur = w; }
+    else cur = test;
+  });
+  if(cur) lines.push(cur);
+  return lines;
+}
+
+// ---------- рендер техкарты в одну картинку (для "Поделиться") ----------
+// window.print() ненадёжен в PWA на домашнем экране iPhone, а старая версия шаринга
+// отправляла только рисунок торта отдельно от текста — неудобно вставить в переписку
+// одним куском. Рисуем целиком альбомную A4-подобную картинку (рисунок+описание слева,
+// разбор по коржам/кремам справа) через Canvas 2D — а не SVG foreignObject, потому что
+// foreignObject→canvas ненадёжно рендерится в Safari/iOS.
+const TC_COLORS = { card:'#FBF6EA', ink:'#2B2519', inkSoft:'#5C5342',
+  burgundy:'#7A2E2E', burgundyDark:'#5C2222', sage:'#586B4D', mustard:'#C68A2E', line:'#D9CBA6' };
+
+async function renderTechCardCanvas(draft){
+  if(document.fonts && document.fonts.ready){ await document.fonts.ready.catch(()=>{}); }
+  const breakdown = computeCakeIngredientsBreakdown(draft);
+  const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
+  const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
+  const today = new Date().toLocaleDateString('ru-RU', { day:'2-digit', month:'long', year:'numeric' });
+  const warn = stabilityWarning(draft);
+
+  const items = [];
+  breakdown.layers.forEach(l=> items.push({ badge:String(l.index+1), badgeColor:TC_COLORS.burgundy,
+    head:`Корж ${l.index+1} · ${l.kind.label} — ${l.variant.label}`,
+    sub:`Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+l.syrupLabel : ''}`, ingredients:l.ingredients }));
+  breakdown.creamGroups.forEach(c=> items.push({ badge:'🥄', badgeColor:TC_COLORS.sage,
+    head:`Крем «${c.label}»`, sub:`На стыки ${c.gapsText}`, ingredients:c.ingredients }));
+  if(breakdown.coat) items.push({ badge:'🧁', badgeColor:TC_COLORS.mustard, head:`Покрытие: ${breakdown.coat.label}`, sub:'', ingredients:breakdown.coat.ingredients });
+  if(breakdown.decor) items.push({ badge:'✨', badgeColor:TC_COLORS.mustard, head:`Декор: ${breakdown.decor.label}`, sub:'', ingredients:breakdown.decor.ingredients });
+
+  const W = 2480, H = Math.round(W*210/297); // альбомная A4-пропорция, печатное разрешение
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = TC_COLORS.card; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = TC_COLORS.line; ctx.lineWidth = 3; ctx.strokeRect(20,20,W-40,H-40);
+
+  const M = 90;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  ctx.fillStyle = TC_COLORS.sage;
+  ctx.font = '600 24px "IBM Plex Mono", monospace';
+  ctx.fillText('ТЕХНОЛОГИЧЕСКАЯ КАРТА', M, M);
+  ctx.fillStyle = TC_COLORS.ink;
+  ctx.font = '700 56px Fraunces, serif';
+  ctx.fillText(draft.title || summaryTitle(draft), M, M+72);
+  ctx.font = '500 26px "IBM Plex Mono", monospace';
+  ctx.fillStyle = TC_COLORS.inkSoft;
+  ctx.fillText(today, W-M-ctx.measureText(today).width, M);
+  ctx.strokeStyle = TC_COLORS.burgundy; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(M, M+104); ctx.lineTo(W-M, M+104); ctx.stroke();
+
+  const topY = M+150, bottomY = H-M, colGap = 60;
+  const leftW = Math.round((W-M*2-colGap)*0.4);
+  const rightW = (W-M*2-colGap)-leftW;
+  const rightX = M+leftW+colGap;
+  ctx.strokeStyle = TC_COLORS.line; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(rightX-colGap/2, topY); ctx.lineTo(rightX-colGap/2, bottomY); ctx.stroke();
+
+  // левая колонка: рисунок среза + описание
+  let ly = topY;
+  const illusH = 520;
+  const img = await loadImageFromSvg(buildCutSectionHtml(draft, 1.5, true));
+  if(img){
+    const s = Math.min(leftW/img.naturalWidth, illusH/img.naturalHeight);
+    const iw = img.naturalWidth*s, ih = img.naturalHeight*s;
+    ctx.drawImage(img, M+(leftW-iw)/2, ly+(illusH-ih), iw, ih);
+  }
+  ly += illusH + 46;
+  ctx.fillStyle = TC_COLORS.ink;
+  ctx.font = '400 30px Inter, sans-serif';
+  tcWrapText(ctx, description, leftW).forEach(line=>{ ctx.fillText(line, M, ly); ly += 42; });
+  ly += 18;
+  ctx.font = '700 27px Inter, sans-serif';
+  ctx.fillStyle = TC_COLORS.burgundyDark;
+  ctx.fillText(`📏 ≈${estimatePortions(draft)} порций  ·  🧱 ${draft.layers.length} коржей`, M, ly);
+  ly += 46;
+  if(draft.occasion){ ctx.fillText(`🎉 ${draft.occasion}`, M, ly); ly += 46; }
+  ctx.font = '400 26px Inter, sans-serif';
+  ctx.fillStyle = TC_COLORS.inkSoft;
+  tcWrapText(ctx, `Снаружи: ${coat.label}${decorLabel ? ' · декор: '+decorLabel : ''}`, leftW).forEach(line=>{ ctx.fillText(line, M, ly); ly += 36; });
+  if(warn){
+    ly += 18;
+    ctx.font = '600 24px Inter, sans-serif';
+    ctx.fillStyle = TC_COLORS.mustard;
+    tcWrapText(ctx, `⚠️ ${warn}`, leftW).forEach(line=>{ ctx.fillText(line, M, ly); ly += 34; });
+  }
+
+  // правая колонка: разбор по коржам/кремам — сначала измеряем на пробу, чтобы
+  // при 15 коржах и куче кремов текст ужался, а не вылез за нижний край листа
+  const availH = bottomY - topY - 20;
+  function measure(f){
+    let h = 0;
+    items.forEach(it=>{
+      ctx.font = `700 ${Math.round(26*f)}px Inter, sans-serif`;
+      h += tcWrapText(ctx, it.head, rightW-70*f).length * 34*f;
+      if(it.sub) h += 30*f;
+      h += it.ingredients.length * 34*f + 26*f;
+    });
+    return h;
+  }
+  const scaleF = Math.min(1, Math.max(0.48, availH/Math.max(1,measure(1))));
+
+  let ry = topY + 20;
+  items.forEach(it=>{
+    const r = 22*scaleF;
+    const headX = rightX + r*2 + 16*scaleF;
+    ctx.beginPath(); ctx.arc(rightX+r, ry+r, r, 0, Math.PI*2);
+    ctx.fillStyle = it.badgeColor; ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `700 ${Math.round(20*scaleF)}px "IBM Plex Mono", monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(it.badge, rightX+r, ry+r+7*scaleF);
+    ctx.textAlign = 'left';
+
+    ctx.font = `700 ${Math.round(26*scaleF)}px Inter, sans-serif`;
+    ctx.fillStyle = TC_COLORS.burgundyDark;
+    let hy = ry + 8*scaleF;
+    tcWrapText(ctx, it.head, rightW-r*2-16*scaleF).forEach(line=>{ ctx.fillText(line, headX, hy+22*scaleF); hy += 34*scaleF; });
+    if(it.sub){
+      ctx.font = `400 ${Math.round(22*scaleF)}px Inter, sans-serif`;
+      ctx.fillStyle = TC_COLORS.sage;
+      ctx.fillText(it.sub, headX, hy+18*scaleF); hy += 30*scaleF;
+    }
+    ry = Math.max(ry+r*2+10*scaleF, hy+12*scaleF);
+
+    it.ingredients.forEach(ing=>{
+      ctx.font = `400 ${Math.round(24*scaleF)}px Inter, sans-serif`;
+      ctx.fillStyle = TC_COLORS.ink;
+      ctx.fillText(ing.name, headX, ry+20*scaleF);
+      ctx.font = `500 ${Math.round(22*scaleF)}px "IBM Plex Mono", monospace`;
+      ctx.fillStyle = TC_COLORS.inkSoft;
+      const qtyText = `${fmtQty(ing.qty)} ${ing.unit}`;
+      ctx.textAlign = 'right';
+      ctx.fillText(qtyText, rightX+rightW, ry+20*scaleF);
+      ctx.textAlign = 'left';
+      ctx.strokeStyle = TC_COLORS.line; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(headX, ry+30*scaleF); ctx.lineTo(rightX+rightW, ry+30*scaleF); ctx.stroke();
+      ry += 34*scaleF;
+    });
+    ry += 26*scaleF;
+  });
+
+  ctx.font = '400 22px Inter, sans-serif';
+  ctx.fillStyle = TC_COLORS.inkSoft;
+  ctx.textAlign = 'center';
+  ctx.fillText('🍰 Собрано в конструкторе «Книги рецептов»', W/2, H-M+50);
+  ctx.textAlign = 'left';
+
+  return canvas;
+}
+
+async function techCardPngBlob(draft){
+  try{
+    const canvas = await renderTechCardCanvas(draft);
+    return await new Promise(resolve=> canvas.toBlob(b=>resolve(b), 'image/png'));
+  } catch(e){ return null; }
 }
 
 async function shareTechCard(draft){
@@ -1220,14 +1378,14 @@ async function shareTechCard(draft){
   try{
     let files = null;
     if(navigator.canShare){
-      const png = await svgStringToPngBlob(buildCutSectionHtml(draft, 1.4));
+      const png = await techCardPngBlob(draft);
       if(png){
-        const file = new File([png], 'tort.png', { type:'image/png' });
+        const file = new File([png], 'tehkarta.png', { type:'image/png' });
         if(navigator.canShare({ files:[file] })) files = [file];
       }
     }
     if(!navigator.share) throw new Error('no-share-api');
-    await navigator.share(files ? { title, text, files } : { title, text });
+    await navigator.share(files ? { title, files } : { title, text });
   } catch(e){
     if(e && e.name==='AbortError') return; // пользователь сам закрыл окно шаринга — это не ошибка
     const copied = await navigator.clipboard?.writeText(text).then(()=>true).catch(()=>false);
