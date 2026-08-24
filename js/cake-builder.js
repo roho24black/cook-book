@@ -1082,60 +1082,74 @@ function ingListHtml(items){
   return `<ul class="ing-list">${items.map(i=> `<li><span>${escapeHtml(i.name)}</span><span class="amt">${fmtQty(i.qty)} ${escapeHtml(i.unit)}</span></li>`).join('')}</ul>`;
 }
 
+// badge — то, что стоит в кружке слева от блока: число (совпадает с номером на срезе
+// у коржей) или эмодзи (крем/покрытие/декор, которые не привязаны к одному коржу)
+function tcComponentHtml(cls, badge, head, ingredients, sub){
+  return `
+    <div class="tc-component ${cls}">
+      <div class="tc-badge">${badge}</div>
+      <div class="tc-component-body">
+        <div class="tc-component-head">${head}</div>
+        ${sub ? `<div class="tc-component-sub">${sub}</div>` : ''}
+        ${ingListHtml(ingredients)}
+      </div>
+    </div>`;
+}
+
 export function renderTechCard(draft){
   const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
   const breakdown = computeCakeIngredientsBreakdown(draft);
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
 
-  const layerBlocks = breakdown.layers.map(l=> `
-    <div class="tc-component tc-component-dough">
-      <div class="tc-component-head">🍰 Корж ${l.index+1} · ${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)} · Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}</div>
-      ${ingListHtml(l.ingredients)}
-    </div>`).join('');
+  const layerBlocks = breakdown.layers.map(l=> tcComponentHtml('tc-component-dough', l.index+1,
+    `${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)}`,
+    l.ingredients,
+    `Ø${l.diameter} см${l.syrupLabel ? ' · пропитка: '+escapeHtml(l.syrupLabel) : ''}`)).join('');
 
-  const creamBlocks = breakdown.creamGroups.map(c=> `
-    <div class="tc-component tc-component-cream">
-      <div class="tc-component-head">🥄 Крем «${escapeHtml(c.label)}» — на стыки ${escapeHtml(c.gapsText)} (один замес на все сразу)</div>
-      ${ingListHtml(c.ingredients)}
-    </div>`).join('');
+  const creamBlocks = breakdown.creamGroups.map(c=> tcComponentHtml('tc-component-cream', '🥄',
+    `Крем «${escapeHtml(c.label)}»`,
+    c.ingredients,
+    `На стыки ${escapeHtml(c.gapsText)} — один замес на все сразу`)).join('');
 
   const extraBlocks = [
-    breakdown.coat ? `<div class="tc-component tc-component-extra"><div class="tc-component-head">🧁 Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}</div>${ingListHtml(breakdown.coat.ingredients)}</div>` : '',
-    breakdown.decor ? `<div class="tc-component tc-component-extra"><div class="tc-component-head">✨ Декор: ${escapeHtml(breakdown.decor.label)}</div>${ingListHtml(breakdown.decor.ingredients)}</div>` : ''
+    breakdown.coat ? tcComponentHtml('tc-component-extra', '🧁', `Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}`, breakdown.coat.ingredients) : '',
+    breakdown.decor ? tcComponentHtml('tc-component-extra', '✨', `Декор: ${escapeHtml(breakdown.decor.label)}`, breakdown.decor.ingredients) : ''
   ].join('');
 
   const today = new Date().toLocaleDateString('ru-RU', { day:'2-digit', month:'long', year:'numeric' });
 
   document.getElementById('cakeTechCardBody').innerHTML = `
-    <div class="tc-header">
-      <div>
-        <p class="tc-header-kicker">Технологическая карта</p>
-        <h2 class="tc-header-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
-      </div>
-      <div class="tc-header-date">${escapeHtml(today)}</div>
-    </div>
-    <div class="cake-techcard">
-      <div class="tc-col-left">
-        <div style="display:flex; justify-content:center; margin:6px 0 16px;">${buildCutSectionHtml(draft, 0.85)}</div>
-        <p style="font-size:13px; line-height:1.6; color:var(--ink);">${escapeHtml(description)}</p>
-        <div class="detail-meta-row">
-          <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
-          <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
-          ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
+    <div class="tc-sheet">
+      <div class="tc-header">
+        <div>
+          <p class="tc-header-kicker">Технологическая карта</p>
+          <h2 class="tc-header-title">${escapeHtml(draft.title || summaryTitle(draft))}</h2>
         </div>
-        <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decorLabel ? ' · декор: '+escapeHtml(decorLabel) : ''}</p>
-        ${stabilityWarning(draft) ? `<div class="cake-stability-tip" style="margin-top:12px;">⚠️ ${escapeHtml(stabilityWarning(draft))}</div>` : ''}
+        <div class="tc-header-date">${escapeHtml(today)}</div>
       </div>
-      <div class="tc-col-right">
-        <h4 class="tc-col-heading">Разбор по коржам</h4>
-        ${layerBlocks}
-        <h4 class="tc-col-heading">Разбор по кремам</h4>
-        ${creamBlocks}
-        ${extraBlocks}
+      <div class="cake-techcard">
+        <div class="tc-col-left">
+          <div class="tc-illus-wrap">${buildCutSectionHtml(draft, 0.85, true)}</div>
+          <p class="tc-description">${escapeHtml(description)}</p>
+          <div class="detail-meta-row">
+            <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
+            <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
+            ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
+          </div>
+          <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decorLabel ? ' · декор: '+escapeHtml(decorLabel) : ''}</p>
+          ${stabilityWarning(draft) ? `<div class="cake-stability-tip" style="margin-top:12px;">⚠️ ${escapeHtml(stabilityWarning(draft))}</div>` : ''}
+        </div>
+        <div class="tc-col-right">
+          <h4 class="tc-col-heading">Разбор по коржам</h4>
+          ${layerBlocks}
+          <h4 class="tc-col-heading">Разбор по кремам</h4>
+          ${creamBlocks}
+          ${extraBlocks}
+        </div>
       </div>
+      <p class="tc-footer">🍰 Собрано в конструкторе «Книги рецептов»</p>
     </div>
-    <p class="tc-footer">🍰 Собрано в конструкторе «Книги рецептов»</p>
   `;
 }
 
