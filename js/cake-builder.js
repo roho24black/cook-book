@@ -270,6 +270,11 @@ function renderCakeBuilder(){
   document.getElementById('cakeLayersList').innerHTML = layersHtml;
   document.getElementById('cakeAddLayerBtn').style.display = d.layers.length >= MAX_LAYERS ? 'none' : 'block';
   document.getElementById('cakeLayerCountLabel').textContent = `${d.layers.length} из ${MAX_LAYERS}`;
+  const collapseAllBtn = document.getElementById('cakeCollapseAllBtn');
+  if(collapseAllBtn){
+    collapseAllBtn.style.display = d.layers.length >= 4 ? 'inline' : 'none';
+    collapseAllBtn.textContent = collapsedLayers.size >= d.layers.length ? '▾ Развернуть все' : '▸ Свернуть все';
+  }
 
   // ---- покрытие ----
   const outerCream = findCream(d.creams[d.creams.length-1] || 'cheese');
