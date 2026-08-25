@@ -808,6 +808,8 @@
   </div>
   <div class="cook-body" style="display:block; align-items:initial; justify-content:initial; max-width:640px; margin:0 auto; width:100%; padding:16px 20px 100px;">
 
+    <div id="cakePresetsRow"></div>
+
     <div class="cake-preview-box">
       <div id="cakePreview" class="cake-cutsection-wrap"></div>
       <div class="cake-width-label" id="cakeWidthLabel"></div>
@@ -817,18 +819,19 @@
       </div>
       <div class="cake-summary-sub" id="cakeSummarySub"></div>
       <div class="cake-stability-tip" id="cakeStabilityTip" style="display:none;"></div>
-      <div class="cake-guest-row">
-        <span style="font-size:12px; color:var(--ink-soft); white-space:nowrap;">На сколько гостей?</span>
-        <input type="number" inputmode="numeric" min="1" id="cakeGuestsInput" placeholder="12" style="width:56px; padding:6px 8px; border:1.5px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); font-size:13px;">
-        <button type="button" class="shop-link-btn" id="cakeGuestsSuggestBtn">Подобрать диаметр →</button>
-      </div>
       <div class="cake-cost-estimate" id="cakeCostEstimate"></div>
     </div>
 
-    <div id="cakePresetsRow"></div>
+    <!-- Действует на диаметры коржей ниже, поэтому стоит прямо перед разделом "Коржи",
+         а не в карточке предпросмотра — там она была оторвана от того, что реально меняет. -->
+    <div class="cake-guest-row">
+      <span style="font-size:12px; color:var(--ink-soft); white-space:nowrap;">На сколько гостей?</span>
+      <input type="number" inputmode="numeric" min="1" id="cakeGuestsInput" placeholder="12" style="width:56px; padding:6px 8px; border:1.5px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); font-size:13px;">
+      <button type="button" class="shop-link-btn" id="cakeGuestsSuggestBtn">Подобрать диаметр →</button>
+    </div>
 
     <div class="field-label-row">
-      <span class="cake-section-title">Коржи</span>
+      <span class="cake-section-title">1. Коржи</span>
       <span style="display:flex; align-items:center; gap:10px;">
         <button type="button" class="shop-link-btn" id="cakeCollapseAllBtn" style="font-size:11px;"></button>
         <span class="cake-layer-count" id="cakeLayerCountLabel"></span>
@@ -837,14 +840,17 @@
     <div id="cakeLayersList"></div>
     <button type="button" class="row-add" id="cakeAddLayerBtn">+ Добавить корж</button>
 
-    <div class="cake-section-title" style="margin-top:18px;">Внешнее покрытие</div>
+    <div class="cake-section-title" style="margin-top:18px;">2. Внешнее покрытие</div>
     <div class="cake-same-row" id="cakeCoatSameRow"></div>
-    <div class="cake-chip-row" id="cakeCoatChips" style="margin-top:8px;"></div>
+    <div id="cakeCoatPickWrap" style="margin-top:8px;">
+      <div class="cake-chip-row" id="cakeCoatChips"></div>
+    </div>
 
-    <div class="cake-section-title" style="margin-top:18px;">Декор</div>
+    <div class="cake-section-title" style="margin-top:18px;">3. Декор</div>
     <div class="cake-chip-row" id="cakeDecorChips"></div>
 
-    <div class="row2" style="margin-top:18px;">
+    <div class="cake-section-title" style="margin-top:18px;">4. Детали торта</div>
+    <div class="row2">
       <div class="field"><label>Дата</label><input type="date" id="cakeDateInput"></div>
       <div class="field"><label>Повод</label><input type="text" id="cakeOccasionInput" placeholder="Юбилей, день рождения…"></div>
     </div>
