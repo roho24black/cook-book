@@ -375,6 +375,7 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     showToast(`«${k.label} — ${v.label}» применено ко всем коржам`);
   }
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
+  else if(role==='reveal-coat-picker') update(dr=> dr.coatSame = false);
   else if(role==='decor') update(dr=>{
     if(value==='none'){ dr.decor = []; return; }
     const arr = asDecorArray(dr.decor).filter(v=>v!=='none');
