@@ -224,6 +224,7 @@ function renderCakeBuilder(){
   // ---- быстрый старт (только для нового торта, не при редактировании) ----
   document.getElementById('cakePresetsRow').innerHTML = !d.id ? `
     <div class="cake-section-title" style="margin-bottom:8px;">Быстрый старт</div>
+    <p style="font-size:12px; color:var(--ink-soft); margin:-2px 0 10px;">Необязательно — ниже уже собран рабочий вариант, можно донастроить его как есть, без пресета.</p>
     <div class="cake-chip-row" style="margin-bottom:18px;">
       ${CAKE_PRESETS.map(p=> `<button type="button" class="cake-chip" data-role="preset" data-value="${p.id}">${p.emoji} ${escapeHtml(p.label)}</button>`).join('')}
     </div>` : '';
