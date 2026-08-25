@@ -202,11 +202,10 @@ function update(mutator){
   renderCakeBuilder();
 }
 
-function chip({active, label, role, idx, value, dot, dim}){
+function chip({active, label, role, idx, value, dot}){
   const idxAttr = idx!==undefined ? ` data-idx="${idx}"` : '';
   const dotHtml = dot ? `<span class="cake-dot" style="background:${dot}"></span>` : '';
-  const dimAttr = dim ? ' style="opacity:.45"' : '';
-  return `<button type="button" class="cake-chip ${active?'active':''}" data-role="${role}"${idxAttr} data-value="${escapeHtml(String(value))}"${dimAttr}>${dotHtml}${escapeHtml(label)}</button>`;
+  return `<button type="button" class="cake-chip ${active?'active':''}" data-role="${role}"${idxAttr} data-value="${escapeHtml(String(value))}">${dotHtml}${escapeHtml(label)}</button>`;
 }
 
 function renderCakeBuilder(){
