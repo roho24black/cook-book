@@ -292,14 +292,17 @@ function renderCakeBuilder(){
   }
 
   // ---- покрытие ----
+  // Пока "тот же крем" включён — выбор конкретного покрытия ни на что не влияет, поэтому
+  // сам список чипов вообще не показываем (раньше он торчал целиком, но приглушённым —
+  // непонятно было, кликабелен он или нет). Вместо этого одна явная ссылка-переключатель.
   const outerCream = findCream(d.creams[d.creams.length-1] || 'cheese');
   document.getElementById('cakeCoatSameRow').innerHTML = `
     <div class="cake-same-box ${d.coatSame?'active':''}">${d.coatSame?'✓':''}</div>
     <div style="flex:1;font-size:13px;color:var(--ink)">Снаружи — тот же крем, что в верхнем стыке</div>
     <div style="font:600 10.5px 'IBM Plex Mono',monospace;color:var(--ink-soft)">${escapeHtml(outerCream.label)}</div>`;
-  document.getElementById('cakeCoatChips').innerHTML = CAKE_COATS.map(c=>
-    chip({active: !d.coatSame && d.coat===c.id, label:c.label, role:'coat', value:c.id, dot:c.c, dim:d.coatSame})
-  ).join('');
+  document.getElementById('cakeCoatPickWrap').innerHTML = d.coatSame
+    ? `<button type="button" class="shop-link-btn" data-role="reveal-coat-picker">Выбрать другое покрытие →</button>`
+    : `<div class="cake-chip-row">${CAKE_COATS.map(c=> chip({active: d.coat===c.id, label:c.label, role:'coat', value:c.id, dot:c.c})).join('')}</div>`;
 
   // ---- декор ----
   { const selectedDecor = asDecorArray(d.decor);
