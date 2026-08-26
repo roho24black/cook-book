@@ -76,11 +76,39 @@ document.getElementById('cakesCloseBtn').addEventListener('click', closeCakesTab
 export function renderCakesList(){
   const wrap = document.getElementById('cakesList');
   if(!wrap) return;
+  wrap.innerHTML = `
+    <div class="planner-actions" style="margin-bottom:16px;">
+      <button class="btn btn-primary" id="cakeNewBtnInline">🎂 Собрать новый торт</button>
+      <button class="btn" id="cakeImportOpenBtn" style="background:var(--sage); border-color:var(--sage); color:#F5EEDD;">📋 Импорт от Клода</button>
+    </div>
+    ${store.cakes.length ? `<div class="search-wrap" style="margin-bottom:16px; max-width:320px;"><input type="text" id="cakesSearchInput" placeholder="Поиск по названию или поводу…" value="${escapeHtml(store.cakesSearchQuery||'')}"></div>` : ''}
+    <div id="cakesGrid"></div>
+  `;
+  wrap.querySelector('#cakeNewBtnInline')?.addEventListener('click', ()=> openCakeBuilder(null));
+  wrap.querySelector('#cakeImportOpenBtn')?.addEventListener('click', openCakeImportOverlay);
+  // На каждый ввод буквы перерисовываем ТОЛЬКО сетку карточек (не весь wrap) — иначе
+  // сам инпут поиска тоже пересоздавался бы и терял фокус посреди набора текста (та же
+  // причина, по которой occasion/description/layer-note в конструкторе устроены так же).
+  wrap.querySelector('#cakesSearchInput')?.addEventListener('input', (e)=>{
+    store.cakesSearchQuery = e.target.value;
+    renderCakesGrid();
+  });
+  renderCakesGrid();
+}
+
+function renderCakesGrid(){
+  const gridWrap = document.getElementById('cakesGrid');
+  if(!gridWrap) return;
   // Ближайшие по дате торты — сверху (что готовить в первую очередь важнее, чем что
   // недавно создано); торты без даты или с прошедшей датой — ниже, среди них недавно
   // созданные впереди.
   const today = todayISO();
-  const cakes = store.cakes.slice().sort((a,b)=>{
+  const q = (store.cakesSearchQuery||'').trim().toLowerCase();
+  let cakes = store.cakes.slice();
+  if(q) cakes = cakes.filter(c=>
+    summaryTitle(c).toLowerCase().includes(q) || (c.occasion||'').toLowerCase().includes(q) || (c.title||'').toLowerCase().includes(q)
+  );
+  cakes.sort((a,b)=>{
     const ad = a.date || '', bd = b.date || '';
     const aUp = ad >= today, bUp = bd >= today;
     if(aUp !== bUp) return aUp ? -1 : 1;
