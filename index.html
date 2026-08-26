@@ -592,6 +592,19 @@
   </div>
 </div>
 
+<div class="overlay" id="cakePriceSettingsOverlay">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-close" id="priceSettingsCloseBtn">&times;</button>
+    <p class="form-title">✏️ Свои цены на продукты</p>
+    <p style="font-size:12.5px; color:var(--ink-soft); margin:-8px 0 16px;">Вместо средних цен по рынку — впиши свои, оценка стоимости торта станет точнее. Пусто = средняя цена. Хранится только на этом устройстве.</p>
+    <div id="priceSettingsList" style="max-height:52vh; overflow-y:auto; padding-right:4px;"></div>
+    <div class="form-actions" style="justify-content:stretch; gap:9px; margin-top:14px;">
+      <button class="btn" id="priceSettingsResetBtn" style="flex:1; justify-content:center;">Сбросить всё</button>
+      <button class="btn btn-primary" id="priceSettingsSaveBtn" style="flex:1; justify-content:center;">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="formOverlay">
   <div class="modal" style="max-width:720px;">
     <button class="modal-close" id="formCloseBtn">&times;</button>
