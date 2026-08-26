@@ -1273,12 +1273,12 @@ function ingListHtml(items){
 
 // badge — то, что стоит в кружке слева от блока: число (совпадает с номером на срезе
 // у коржей) или эмодзи (крем/покрытие/декор, которые не привязаны к одному коржу)
-function tcComponentHtml(cls, badge, head, ingredients, sub){
+function tcComponentHtml(cls, badge, head, ingredients, sub, cost){
   return `
     <div class="tc-component ${cls}">
       <div class="tc-badge">${badge}</div>
       <div class="tc-component-body">
-        <div class="tc-component-head">${head}</div>
+        <div class="tc-component-head">${head}${cost ? `<span class="tc-cost-tag">≈${cost} ₽</span>` : ''}</div>
         ${sub ? `<div class="tc-component-sub">${sub}</div>` : ''}
         ${ingListHtml(ingredients)}
       </div>
