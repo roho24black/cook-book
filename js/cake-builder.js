@@ -1784,12 +1784,15 @@ document.getElementById('cakeCardOptsOverlay')?.addEventListener('click', (e)=>{
   if(e.target.id==='cakeCardOptsOverlay' || e.target.closest('#cardOptsCancelBtn')) closeCardOptsSheet();
 });
 document.getElementById('cardOptsConfirmBtn')?.addEventListener('click', async ()=>{
-  const draft = cardOptsDraft;
+  const draft = cardOptsDraft, mode = cardOptsMode;
   const opts = { style:cardStyleKey, format:cardFormatKey };
   closeCardOptsSheet();
-  if(draft) await shareTechCard(draft, opts);
+  if(!draft) return;
+  if(mode==='shopping') await shareShoppingCard(draft, opts);
+  else await shareTechCard(draft, opts);
 });
-document.getElementById('cakeTechCardShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft));
+document.getElementById('cakeTechCardShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft, 'tech'));
+document.getElementById('cakeBuyShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft, 'shopping'));
 
 document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()=>{
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
