@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cookbook-v37';
+const CACHE_NAME = 'cookbook-v38';
 const ASSETS = [
   './',
   './index.html',
