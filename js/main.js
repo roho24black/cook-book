@@ -25,7 +25,7 @@ import './backup.js';
 import './cake-builder.js';
 
 import { signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { onSnapshot, query, orderBy, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ---------- Статус онлайн/офлайн ----------
 const syncDot = document.getElementById('syncDot');
