@@ -1187,6 +1187,48 @@ function generateCakeDescription(draft){
   return `Торт из ${draft.layers.length} коржей — ${kindsPart}. Между коржами: ${creamsPart}. Снаружи: ${coat.label.toLowerCase()}${decorLabel ? ', декор — '+decorLabel : ''}. Диаметр: ${diamText}. Ориентировочный выход — ${estimatePortions(draft)} порций.`;
 }
 
+// ---------- план подготовки по дням ----------
+// Коржи (особенно медовик и красный бархат — они вкуснее, когда сутки-двое настоятся)
+// печём заранее, крема и сиропы — за день, а сборку и декор — только в день торта.
+// Если дата торта указана — считаем настоящие календарные даты, если нет — просто
+// "за N дней" относительно неизвестного дня Х.
+export function buildPrepSchedule(draft){
+  const hasRestKind = draft.layers.some(l=> l.kind==='honey' || l.kind==='velvet');
+  const bakeOffset = hasRestKind ? -2 : -1;
+  const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
+  const decorLabels = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase());
+
+  const groups = [
+    { offset: bakeOffset, title:'🍰 Испечь коржи' + (hasRestKind ? ' (медовику и бархату нужно настояться)' : ''),
+      tasks: draft.layers.map((l,i)=>{
+        const kind = findKind(l.kind), variant = findVariant(kind, l.variant);
+        return `Корж ${i+1}: ${kind.label.toLowerCase()} — ${variant.label.toLowerCase()}, Ø${l.diameter} см`;
+      }) },
+    { offset: -1, title:'🥄 Сварить пропитки и приготовить крема',
+      tasks: [
+        ...Array.from(new Set(draft.layers.map(l=>l.syrup))).filter(s=>s!=='none').map(s=> `Пропитка: ${findSyrup(s).label.toLowerCase()}`),
+        ...Array.from(new Set(draft.creams)).map(c=> `Крем: ${findCream(c).label.toLowerCase()}`)
+      ] },
+    { offset: 0, title:'🎂 Собрать и украсить',
+      tasks: [
+        'Промазать коржи кремом и собрать торт',
+        `Покрыть снаружи: ${coat.label.toLowerCase()}`,
+        ...(decorLabels.length ? [`Украсить: ${decorLabels.join(', ')}`] : []),
+        'Убрать в холодильник минимум на 3–4 часа перед подачей'
+      ] }
+  ];
+
+  const base = draft.date ? new Date(draft.date+'T00:00:00') : null;
+  return groups.filter(g=> g.tasks.length).map(g=>{
+    let dateLabel = g.offset===0 ? 'В день торта' : `За ${Math.abs(g.offset)} ${Math.abs(g.offset)===1?'день':'дня'}`;
+    if(base){
+      const d = new Date(base); d.setDate(d.getDate()+g.offset);
+      dateLabel += ' · ' + d.toLocaleDateString('ru-RU', { day:'2-digit', month:'long', weekday:'short' });
+    }
+    return { dateLabel, title:g.title, tasks:g.tasks };
+  });
+}
+
 // ---------- технологическая карта (рисунок + разбор по коржам/кремам + описание) ----------
 // Печатается как A4 альбомная (см. @page и .cake-techcard в index.html): рисунок и сводка
 // слева, разбор по каждому коржу/крему отдельными блоками справа — так на бумаге видно,
