@@ -824,10 +824,17 @@
 
     <!-- Действует на диаметры коржей ниже, поэтому стоит прямо перед разделом "Коржи",
          а не в карточке предпросмотра — там она была оторвана от того, что реально меняет. -->
-    <div class="cake-guest-row">
+    <div class="cake-guest-row" style="flex-wrap:wrap; row-gap:10px;">
       <span style="font-size:12px; color:var(--ink-soft); white-space:nowrap;">На сколько гостей?</span>
       <input type="number" inputmode="numeric" min="1" id="cakeGuestsInput" placeholder="12" style="width:56px; padding:6px 8px; border:1.5px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink); font-size:13px;">
       <button type="button" class="shop-link-btn" id="cakeGuestsSuggestBtn">Подобрать диаметр →</button>
+      <!-- Пропорционально масштабирует диаметр КАЖДОГО коржа своей величиной — в отличие
+           от "Подобрать диаметр", не сплющивает многоярусный торт в один плоский диаметр. -->
+      <span style="font-size:12px; color:var(--ink-soft); white-space:nowrap; margin-left:auto;">Масштаб</span>
+      <button type="button" class="shop-link-btn" data-role="scale-cake" data-value="-20">−20%</button>
+      <button type="button" class="shop-link-btn" data-role="scale-cake" data-value="-10">−10%</button>
+      <button type="button" class="shop-link-btn" data-role="scale-cake" data-value="10">+10%</button>
+      <button type="button" class="shop-link-btn" data-role="scale-cake" data-value="20">+20%</button>
     </div>
 
     <div class="field-label-row">
