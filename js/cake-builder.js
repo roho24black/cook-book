@@ -1830,6 +1830,9 @@ function openCardOptsSheet(draft, mode){
   cardOptsDraft = draft; cardStyleKey = 'warm'; cardFormatKey = 'landscape'; cardOptsMode = mode || 'tech';
   document.getElementById('cakeCardOptsOverlay').classList.add('open');
   document.querySelector('#cakeCardOptsOverlay .form-title').textContent = cardOptsMode==='shopping' ? '🛒 Список покупок картинкой' : '🖼️ Карточка для «Поделиться»';
+  document.getElementById('cardOptsDesc').textContent = cardOptsMode==='shopping'
+    ? 'Выбери формат и стиль — список покупок целиком одной картинкой, удобно кинуть в чат перед магазином.'
+    : 'Выбери формат и стиль — картинка сгенерируется целиком, с рисунком торта и разбором по коржам.';
   renderCardOptsFormat();
   renderCardOptsGallery();
 }
