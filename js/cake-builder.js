@@ -6,7 +6,7 @@
 
 import { store } from './store.js';
 import { db, cakesCol, recipesCol, storage } from './firebase-init.js';
-import { addDoc, updateDoc, deleteDoc, doc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { addDoc, updateDoc, deleteDoc, doc, arrayUnion, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import { escapeHtml, fmtQty, showToast, showConfirm } from './utils.js';
 import { setBottomTab, goToRecipesTab } from './bottom-nav.js';
