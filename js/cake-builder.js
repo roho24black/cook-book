@@ -1470,9 +1470,12 @@ function buildTechCardModel(draft){
   if(breakdown.coat) items.push({ badge:'🧁', badgeKind:'emoji', head:`Покрытие: ${breakdown.coat.label}`, sub:'', ingredients:breakdown.coat.ingredients });
   if(breakdown.decor) items.push({ badge:'✨', badgeKind:'emoji', head:`Декор: ${breakdown.decor.label}`, sub:'', ingredients:breakdown.decor.ingredients });
 
+  const allergens = detectCakeAllergens(draft);
   return {
     title: draft.title || summaryTitle(draft), today, description, warn, items,
     portions: estimatePortions(draft), layerCount: draft.layers.length, occasion: draft.occasion || '',
+    cost: estimateCakeCost(draft), kcal: estimateCakeNutrition(draft).perPortion.kcal,
+    allergensText: allergens.length ? 'Содержит: '+allergens.map(a=>a.emoji+' '+a.label.toLowerCase()).join(', ') : '',
     outer: `Снаружи: ${coat.label}${decorLabel ? ' · декор: '+decorLabel : ''}`
   };
 }
