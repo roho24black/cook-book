@@ -1596,6 +1596,142 @@ async function shareTechCard(draft, opts){
   }
 }
 
+// ---------- та же система стилей/форматов — картинкой и для списка покупок ----------
+// Переиспользует CARD_STYLES/CARD_FORMATS/tcBg/tcWrapText техкарты, только без рисунка
+// торта: слева — название и сводка (позиций/стоимость), справа — сам список построчно.
+function buildShoppingCardModel(draft){
+  const items = computeCakeIngredients(draft);
+  const today = new Date().toLocaleDateString('ru-RU', { day:'2-digit', month:'long', year:'numeric' });
+  return { title: draft.title || summaryTitle(draft), today, items, count: items.length, cost: estimateCakeCost(draft) };
+}
+function drawFlatList(ctx, C, items, x, y0, w, availH){
+  const rowH = 40;
+  const scaleF = Math.min(1, Math.max(0.4, availH/Math.max(1, items.length*rowH)));
+  let ry = y0;
+  items.forEach(it=>{
+    ctx.font = `400 ${Math.round(26*scaleF)}px Inter, sans-serif`;
+    ctx.fillStyle = C.ink;
+    ctx.fillText(it.name, x, ry+20*scaleF);
+    ctx.font = `500 ${Math.round(23*scaleF)}px "IBM Plex Mono", monospace`;
+    ctx.fillStyle = C.inkSoft;
+    const qtyText = it.qty!==null ? `${fmtQty(it.qty)} ${it.unit}` : it.unit;
+    ctx.textAlign = 'right'; ctx.fillText(qtyText, x+w, ry+20*scaleF); ctx.textAlign = 'left';
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, ry+30*scaleF); ctx.lineTo(x+w, ry+30*scaleF); ctx.stroke();
+    ry += rowH*scaleF;
+  });
+}
+function drawShoppingLandscape(ctx, C, W, H, model){
+  tcBg(ctx, C, W, H);
+  ctx.strokeStyle = C.frame; ctx.lineWidth = 3; ctx.strokeRect(20,20,W-40,H-40);
+  const M = 90;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+  ctx.fillStyle = C.accent2;
+  ctx.font = '600 24px "IBM Plex Mono", monospace';
+  ctx.fillText('СПИСОК ПОКУПОК', M, M);
+  ctx.fillStyle = C.ink;
+  ctx.font = '700 56px Fraunces, serif';
+  ctx.fillText(model.title, M, M+72);
+  ctx.font = '500 26px "IBM Plex Mono", monospace';
+  ctx.fillStyle = C.inkSoft;
+  ctx.fillText(model.today, W-M-ctx.measureText(model.today).width, M);
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(M, M+104); ctx.lineTo(W-M, M+104); ctx.stroke();
+
+  const topY = M+150, bottomY = H-M, colGap = 60;
+  const leftW = Math.round((W-M*2-colGap)*0.32);
+  const rightW = (W-M*2-colGap)-leftW;
+  const rightX = M+leftW+colGap;
+  ctx.strokeStyle = C.line; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(rightX-colGap/2, topY); ctx.lineTo(rightX-colGap/2, bottomY); ctx.stroke();
+
+  let ly = topY+60;
+  ctx.font = '700 60px sans-serif'; ctx.fillStyle = C.ink;
+  ctx.fillText('🛒', M, ly); ly += 70;
+  ctx.font = '700 32px Inter, sans-serif'; ctx.fillStyle = C.accentDark;
+  ctx.fillText(`${model.count} позиций`, M, ly); ly += 44;
+  ctx.font = '400 27px Inter, sans-serif'; ctx.fillStyle = C.inkSoft;
+  ctx.fillText(`≈${model.cost} ₽ (прикидка)`, M, ly);
+
+  drawFlatList(ctx, C, model.items, rightX, topY+20, rightW, bottomY-topY-20);
+
+  ctx.font = '400 22px Inter, sans-serif';
+  ctx.fillStyle = C.inkSoft;
+  ctx.textAlign = 'center';
+  ctx.fillText('🍰 Собрано в конструкторе «Книги рецептов»', W/2, H-M+50);
+  ctx.textAlign = 'left';
+}
+function drawShoppingStory(ctx, C, W, H, model){
+  tcBg(ctx, C, W, H);
+  ctx.strokeStyle = C.frame; ctx.lineWidth = 3; ctx.strokeRect(16,16,W-32,H-32);
+  const M = 56;
+  ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+  ctx.fillStyle = C.accent2;
+  ctx.font = '600 20px "IBM Plex Mono", monospace';
+  ctx.fillText('СПИСОК ПОКУПОК', W/2, M);
+  ctx.fillStyle = C.ink;
+  ctx.font = '700 46px Fraunces, serif';
+  const titleLines = tcWrapText(ctx, model.title, W-M*2).slice(0,2);
+  titleLines.forEach((line,i)=> ctx.fillText(line, W/2, M+58+i*52));
+  let y = M + 58 + titleLines.length*52 + 14;
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(W/2-60, y); ctx.lineTo(W/2+60, y); ctx.stroke();
+  y += 44;
+  ctx.font = '700 30px Inter, sans-serif'; ctx.fillStyle = C.accentDark;
+  ctx.fillText(`🛒 ${model.count} позиций · ≈${model.cost} ₽`, W/2, y);
+  y += 50;
+
+  ctx.textAlign = 'left';
+  drawFlatList(ctx, C, model.items, M, y, W-M*2, H-M-y-40);
+  ctx.textAlign = 'center';
+  ctx.font = '400 20px Inter, sans-serif';
+  ctx.fillStyle = C.inkSoft;
+  ctx.fillText('🍰 Собрано в конструкторе «Книги рецептов»', W/2, H-30);
+  ctx.textAlign = 'left';
+}
+async function renderShoppingCanvas(draft, opts){
+  opts = opts || {};
+  if(document.fonts && document.fonts.ready){ await document.fonts.ready.catch(()=>{}); }
+  const C = findCardStyle(opts.style);
+  const F = findCardFormat(opts.format);
+  const model = buildShoppingCardModel(draft);
+  const W = F.w, H = Math.round(F.w * F.ratio);
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  if(F.key==='story') drawShoppingStory(ctx, C, W, H, model);
+  else drawShoppingLandscape(ctx, C, W, H, model);
+  return canvas;
+}
+function shoppingListText(draft){
+  const items = computeCakeIngredients(draft);
+  const lines = [`🛒 Список покупок: ${draft.title || summaryTitle(draft)}`, ''];
+  items.forEach(i=> lines.push(`- ${i.name}${i.qty!==null ? ` — ${fmtQty(i.qty)} ${i.unit}` : ` — ${i.unit}`}`));
+  lines.push('', `≈${estimateCakeCost(draft)} ₽ (прикидка по средним ценам)`, '', 'Собрано в «Книге рецептов»');
+  return lines.join('\n');
+}
+async function shareShoppingCard(draft, opts){
+  const text = shoppingListText(draft);
+  const title = draft.title || summaryTitle(draft);
+  try{
+    let files = null;
+    if(navigator.canShare){
+      const canvas = await renderShoppingCanvas(draft, opts);
+      const png = await new Promise(resolve=> canvas.toBlob(b=>resolve(b), 'image/png'));
+      if(png){
+        const file = new File([png], 'spisok-pokupok.png', { type:'image/png' });
+        if(navigator.canShare({ files:[file] })) files = [file];
+      }
+    }
+    if(!navigator.share) throw new Error('no-share-api');
+    await navigator.share(files ? { title, files } : { title, text });
+  } catch(e){
+    if(e && e.name==='AbortError') return;
+    const copied = await navigator.clipboard?.writeText(text).then(()=>true).catch(()=>false);
+    showToast(copied ? 'Поделиться напрямую нельзя в этом браузере — список скопирован в буфер' : 'Не получилось ни поделиться, ни скопировать');
+  }
+}
+
 // ---------- лист выбора стиля/формата картинки (по образцу карточки тренировки в GYM Log) ----------
 // Живая галерея: каждый из 3 стилей рендерится по-настоящему (не иконка-заглушка), чтобы
 // решение принималось по факту увиденного, а не по названию цвета.
