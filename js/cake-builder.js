@@ -824,49 +824,120 @@ function summarySub(draft){
 
 function round(v, step){ step = step||10; return Math.max(step, Math.round(v/step)*step); }
 
-// ---------- грубая оценка стоимости ----------
-// Ориентировочные цены по продуктам средней полки (руб.), 2026 год — не привязаны к
-// конкретному магазину, только чтобы прикинуть порядок цифр, не точная смета.
-const PRICE_RULES = [
-  { re:/сахарная пудра/i, rate:0.09 },
-  { re:/мука/i, rate:0.06 },
-  { re:/сахар/i, rate:0.07 },
-  { re:/яйца|желток|белок/i, rate:9 },
-  { re:/масло сливочное|сливочное масло/i, rate:1.1 },
-  { re:/сливки/i, rate:0.35 },
-  { re:/сливочный сыр|творожный сыр/i, rate:0.9 },
-  { re:/шоколад/i, rate:1.2 },
-  { re:/мёд/i, rate:0.6 },
-  { re:/кефир/i, rate:0.12 },
-  { re:/молоко/i, rate:0.09 },
-  { re:/сода|крахмал|соль/i, rate:0.15 },
-  { re:/ваниль/i, fixed:40 },
-  { re:/какао/i, rate:1.0 },
-  { re:/кофе/i, rate:1.5 },
-  { re:/клубника|ягод|вишня|малина/i, rate:0.5 },
-  { re:/морковь/i, rate:0.08 },
-  { re:/лимон/i, fixed:40 },
-  { re:/печенье/i, rate:0.5 },
-  { re:/йогурт/i, rate:0.6 },
-  { re:/желатин/i, rate:3 },
-  { re:/краситель/i, fixed:150 },
-  { re:/мастика/i, rate:0.8 },
-  { re:/посыпк/i, rate:2 },
-  { re:/карамель/i, rate:1 },
-  { re:/\bром\b/i, rate:2 },
-  { re:/вода/i, rate:0.01 },
+// ---------- грубая оценка стоимости + КБЖУ ----------
+// Один и тот же справочник по ингредиенту — и цена за г/мл (руб., средняя полка, 2026 год,
+// не привязана к магазину), и КБЖУ на 100 г/мл (усреднённые справочные значения) — раньше
+// это были бы два отдельных списка с риском разъехаться, а ингредиент один и тот же.
+// id — стабильный ключ для персональной цены пользователя (см. customPriceOverrides ниже).
+// gramsPerUnit — только для штучных ингредиентов (шт/стручок/фл.), чтобы посчитать КБЖУ.
+const INGREDIENT_RULES = [
+  { id:'sugar-powder', re:/сахарная пудра/i, rate:0.09, kcal:390, p:0, f:0, c:99 },
+  { id:'flour', re:/мука/i, rate:0.06, kcal:340, p:10, f:1, c:70 },
+  { id:'sugar', re:/сахар/i, rate:0.07, kcal:390, p:0, f:0, c:99 },
+  { id:'eggs', re:/яйца/i, rate:9, kcal:157, p:13, f:11, c:1, gramsPerUnit:55 },
+  { id:'yolk', re:/желток/i, rate:9, kcal:322, p:16, f:27, c:1, gramsPerUnit:18 },
+  { id:'white', re:/белок/i, rate:9, kcal:52, p:11, f:0, c:1, gramsPerUnit:34 },
+  { id:'butter', re:/масло сливочное|сливочное масло/i, rate:1.1, kcal:748, p:0.5, f:82, c:0.6 },
+  { id:'cream', re:/сливки/i, rate:0.35, kcal:337, p:2.5, f:33, c:3 },
+  { id:'cheese', re:/сливочный сыр|творожный сыр/i, rate:0.9, kcal:342, p:5, f:34, c:4 },
+  { id:'chocolate', re:/шоколад/i, rate:1.2, kcal:540, p:5, f:35, c:52 },
+  { id:'honey', re:/мёд/i, rate:0.6, kcal:329, p:0.3, f:0, c:82 },
+  { id:'kefir', re:/кефир/i, rate:0.12, kcal:40, p:3, f:1, c:4 },
+  { id:'milk', re:/молоко/i, rate:0.09, kcal:52, p:3, f:1.5, c:5 },
+  { id:'misc-tech', re:/сода|крахмал|соль/i, rate:0.15, kcal:60, p:0, f:0, c:15 },
+  { id:'vanilla', re:/ваниль/i, fixed:40, kcal:0, p:0, f:0, c:0 },
+  { id:'cocoa', re:/какао/i, rate:1.0, kcal:290, p:24, f:15, c:35 },
+  { id:'coffee', re:/кофе/i, rate:1.5, kcal:0, p:0, f:0, c:0 },
+  { id:'berries', re:/клубника|ягод|вишня|малина/i, rate:0.5, kcal:45, p:0.7, f:0.3, c:9 },
+  { id:'carrot', re:/морковь/i, rate:0.08, kcal:32, p:1, f:0, c:7 },
+  { id:'lemon', re:/лимон/i, fixed:40, kcal:16, p:0.5, f:0, c:5, gramsPerUnit:100 },
+  { id:'cookies', re:/печенье/i, rate:0.5, kcal:430, p:6, f:16, c:65 },
+  { id:'yogurt', re:/йогурт/i, rate:0.6, kcal:66, p:5, f:2, c:7 },
+  { id:'gelatin', re:/желатин/i, rate:3, kcal:355, p:87, f:0, c:0 },
+  { id:'dye', re:/краситель/i, fixed:150, kcal:0, p:0, f:0, c:0 },
+  { id:'fondant', re:/мастика/i, rate:0.8, kcal:370, p:0, f:0, c:92 },
+  { id:'sprinkles', re:/посыпк/i, rate:2, kcal:400, p:2, f:10, c:80 },
+  { id:'caramel', re:/карамель/i, rate:1, kcal:380, p:0, f:5, c:88 },
+  { id:'rum', re:/\bром\b/i, rate:2, kcal:220, p:0, f:0, c:1 },
+  { id:'water', re:/вода/i, rate:0.01, kcal:0, p:0, f:0, c:0 },
 ];
+function ingredientRuleFor(name){ return INGREDIENT_RULES.find(r=> r.re.test(name)); }
+
+// ---- свои цены вместо средних по больнице ----
+// Хранится в localStorage (не в Firestore) — это личная настройка того, кто считает
+// стоимость на этом устройстве, синхронизировать между устройствами не обязательно.
+function loadPriceOverrides(){
+  try{ return JSON.parse(localStorage.getItem('cakePriceOverrides')||'{}'); } catch(e){ return {}; }
+}
+function savePriceOverrides(map){ localStorage.setItem('cakePriceOverrides', JSON.stringify(map)); }
+
 function estimateIngredientCost(item){
   if(item.qty===null || item.qty===undefined) return 0;
   let amt = item.qty;
   if(item.unit==='кг' || item.unit==='л') amt *= 1000;
-  const rule = PRICE_RULES.find(r=> r.re.test(item.name));
+  const rule = ingredientRuleFor(item.name);
   if(!rule) return 0; // неизвестный ингредиент — лучше занизить оценку, чем выдумать цену
+  const overrides = loadPriceOverrides();
+  const custom = overrides[rule.id];
+  if(custom!==undefined) return rule.fixed!==undefined ? custom : amt*custom;
   return rule.fixed!==undefined ? rule.fixed : amt*rule.rate;
 }
+function roundMoney(v){ return Math.round(v/10)*10; }
 export function estimateCakeCost(draft){
   const total = computeCakeIngredients(draft).reduce((sum,i)=> sum + estimateIngredientCost(i), 0);
   return Math.round(total/50)*50; // округляем до полтинника — это прикидка, не смета
+}
+// Разбивка стоимости по тем же группам, что в разборе техкарты — сколько именно стоят
+// коржи, сколько крем, сколько покрытие, а не одна общая цифра.
+export function estimateCakeCostBreakdown(draft){
+  const breakdown = computeCakeIngredientsBreakdown(draft);
+  const sum = (ings)=> roundMoney(ings.reduce((s,i)=> s+estimateIngredientCost(i), 0));
+  const layers = breakdown.layers.map(l=> ({ index:l.index, cost: sum(l.ingredients) }));
+  const creamGroups = breakdown.creamGroups.map(c=> ({ label:c.label, cost: sum(c.ingredients) }));
+  const coat = breakdown.coat ? { label:breakdown.coat.label, cost: sum(breakdown.coat.ingredients) } : null;
+  const decor = breakdown.decor ? { label:breakdown.decor.label, cost: sum(breakdown.decor.ingredients) } : null;
+  const total = layers.reduce((s,l)=>s+l.cost,0) + creamGroups.reduce((s,c)=>s+c.cost,0) + (coat?.cost||0) + (decor?.cost||0);
+  return { layers, creamGroups, coat, decor, total };
+}
+
+// ---------- аллергены ----------
+const ALLERGEN_RULES = [
+  { id:'gluten', label:'Глютен', emoji:'🌾', re:/мука|печенье/i },
+  { id:'dairy', label:'Молочные продукты', emoji:'🥛', re:/молок|сливк|масло сливочное|сыр|кефир|йогурт/i },
+  { id:'eggs', label:'Яйца', emoji:'🥚', re:/яйц|желток|белок/i },
+  { id:'nuts', label:'Орехи', emoji:'🌰', re:/орех|миндал|фундук|арахис|фисташ/i },
+];
+export function detectCakeAllergens(draft){
+  const items = computeCakeIngredients(draft);
+  return ALLERGEN_RULES.filter(a=> items.some(i=> a.re.test(i.name)));
+}
+
+// ---------- грубая прикидка КБЖУ ----------
+function avgPortionsCount(draft){
+  const nums = (estimatePortions(draft).match(/\d+/g)||[]).map(Number);
+  return nums.length ? Math.max(1, Math.round(nums.reduce((a,b)=>a+b,0)/nums.length)) : 1;
+}
+function gramsFor(item, rule){
+  if(item.unit==='кг') return item.qty*1000;
+  if(item.unit==='л') return item.qty*1000;
+  if(item.unit==='г' || item.unit==='мл') return item.qty;
+  if(COUNT_UNITS.has(item.unit) && rule.gramsPerUnit) return item.qty*rule.gramsPerUnit;
+  return 0; // "по вкусу"/"щепотка" и т.п. — вклад в КБЖУ пренебрежимо мал, не считаем
+}
+export function estimateCakeNutrition(draft){
+  const items = computeCakeIngredients(draft);
+  let kcal=0, p=0, f=0, c=0;
+  items.forEach(item=>{
+    const rule = ingredientRuleFor(item.name);
+    if(!rule) return;
+    const g = gramsFor(item, rule);
+    kcal += g/100*rule.kcal; p += g/100*rule.p; f += g/100*rule.f; c += g/100*rule.c;
+  });
+  const n = avgPortionsCount(draft);
+  return {
+    total: { kcal:Math.round(kcal), p:Math.round(p), f:Math.round(f), c:Math.round(c) },
+    perPortion: { kcal:Math.round(kcal/n), p:Math.round(p/n), f:Math.round(f/n), c:Math.round(c/n) }
+  };
 }
 
 // Настоящий рецепт компонента из базы (см. cake-component-seed.js) — если автор его
