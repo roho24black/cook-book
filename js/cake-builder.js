@@ -1937,6 +1937,29 @@ document.getElementById('priceSettingsResetBtn')?.addEventListener('click', ()=>
   if(store.cakeDraft) renderCakeBuilder();
 });
 
+// ---------- свои пресеты ----------
+document.getElementById('cakeSaveAsPresetBtn')?.addEventListener('click', ()=>{
+  if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранять пресеты'); return; }
+  document.getElementById('savePresetNameInput').value = summaryTitle(store.cakeDraft);
+  document.getElementById('cakeSavePresetOverlay').classList.add('open');
+});
+document.getElementById('savePresetCloseBtn')?.addEventListener('click', ()=> document.getElementById('cakeSavePresetOverlay').classList.remove('open'));
+document.getElementById('cakeSavePresetOverlay')?.addEventListener('click', (e)=>{ if(e.target.id==='cakeSavePresetOverlay') document.getElementById('cakeSavePresetOverlay').classList.remove('open'); });
+document.getElementById('savePresetConfirmBtn')?.addEventListener('click', async ()=>{
+  const name = document.getElementById('savePresetNameInput').value.trim();
+  if(!name){ showToast('Впиши название пресета'); return; }
+  const d = store.cakeDraft;
+  const preset = {
+    id: 'custom-' + Date.now(), emoji:'🎂', label: name,
+    layers: d.layers, creams: d.creams, coatSame: d.coatSame, coat: d.coat, decor: asDecorArray(d.decor)
+  };
+  try{
+    await setDoc(doc(db,'meta','status'), { customCakePresets: arrayUnion(preset) }, { merge:true });
+    document.getElementById('cakeSavePresetOverlay').classList.remove('open');
+    showToast('Пресет сохранён — появится в «Быстром старте»');
+  } catch(e){ showToast('Не получилось сохранить пресет'); }
+});
+
 document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()=>{
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
   const recipe = buildVirtualRecipe(store.cakeDraft);
