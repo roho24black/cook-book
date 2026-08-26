@@ -249,6 +249,11 @@ function renderCakeBuilder(){
     <p style="font-size:12px; color:var(--ink-soft); margin:-2px 0 10px;">Необязательно — ниже уже собран рабочий вариант, можно донастроить его как есть, без пресета.</p>
     <div class="cake-chip-row" style="margin-bottom:18px;">
       ${CAKE_PRESETS.map(p=> `<button type="button" class="cake-chip" data-role="preset" data-value="${p.id}">${p.emoji} ${escapeHtml(p.label)}</button>`).join('')}
+      ${(store.customCakePresets||[]).map(p=> `
+        <div class="cake-chip" data-role="preset" data-value="${p.id}" style="padding-right:6px;">
+          ${escapeHtml(p.emoji||'🎂')} ${escapeHtml(p.label)}
+          <span data-role="delete-custom-preset" data-value="${p.id}" style="margin-left:6px; opacity:.6;" title="Удалить свой пресет">×</span>
+        </div>`).join('')}
     </div>` : '';
 
   // ---- коржи ----
