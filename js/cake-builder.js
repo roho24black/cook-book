@@ -1950,7 +1950,7 @@ document.getElementById('priceSettingsSaveBtn')?.addEventListener('click', ()=>{
     if(!isNaN(v) && v>0){
       const rule = INGREDIENT_RULES.find(r=>r.id===inp.dataset.id);
       // в форме цена за кг/л (людям привычнее) — внутри rate хранится за г/мл, переводим обратно
-      overrides[inp.dataset.id] = rule.fixed!==undefined ? v : v/1000;
+      overrides[inp.dataset.id] = isPerItemRule(rule) ? v : v/1000;
     }
   });
   savePriceOverrides(overrides);
