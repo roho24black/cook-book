@@ -1887,6 +1887,42 @@ document.getElementById('cardOptsConfirmBtn')?.addEventListener('click', async (
 document.getElementById('cakeTechCardShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft, 'tech'));
 document.getElementById('cakeBuyShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft, 'shopping'));
 
+// ---------- лист "свои цены" ----------
+function openPriceSettingsSheet(){
+  const overrides = loadPriceOverrides();
+  const list = document.getElementById('priceSettingsList');
+  list.innerHTML = INGREDIENT_RULES.map(r=> `
+    <div class="price-row">
+      <span class="price-row-label">${escapeHtml(r.label)}</span>
+      <span class="price-row-unit">${r.fixed!==undefined ? '₽ за шт' : '₽ за кг/л'}</span>
+      <input type="number" min="0" step="0.01" inputmode="decimal" data-id="${r.id}" placeholder="${r.fixed!==undefined ? r.fixed : r.rate*1000}" value="${overrides[r.id]!==undefined ? (r.fixed!==undefined ? overrides[r.id] : overrides[r.id]*1000) : ''}">
+    </div>`).join('');
+  document.getElementById('cakePriceSettingsOverlay').classList.add('open');
+}
+document.getElementById('priceSettingsCloseBtn')?.addEventListener('click', ()=> document.getElementById('cakePriceSettingsOverlay').classList.remove('open'));
+document.getElementById('cakePriceSettingsOverlay')?.addEventListener('click', (e)=>{ if(e.target.id==='cakePriceSettingsOverlay') document.getElementById('cakePriceSettingsOverlay').classList.remove('open'); });
+document.getElementById('priceSettingsSaveBtn')?.addEventListener('click', ()=>{
+  const overrides = {};
+  document.querySelectorAll('#priceSettingsList input').forEach(inp=>{
+    const v = parseFloat(inp.value);
+    if(!isNaN(v) && v>0){
+      const rule = INGREDIENT_RULES.find(r=>r.id===inp.dataset.id);
+      // в форме цена за кг/л (людям привычнее) — внутри rate хранится за г/мл, переводим обратно
+      overrides[inp.dataset.id] = rule.fixed!==undefined ? v : v/1000;
+    }
+  });
+  savePriceOverrides(overrides);
+  document.getElementById('cakePriceSettingsOverlay').classList.remove('open');
+  showToast('Свои цены сохранены');
+  if(store.cakeDraft) renderCakeBuilder();
+});
+document.getElementById('priceSettingsResetBtn')?.addEventListener('click', ()=>{
+  savePriceOverrides({});
+  document.getElementById('cakePriceSettingsOverlay').classList.remove('open');
+  showToast('Сброшено на средние цены');
+  if(store.cakeDraft) renderCakeBuilder();
+});
+
 document.getElementById('cakeSaveRecipeBtn')?.addEventListener('click', async ()=>{
   if(!store.isAdmin){ showToast('Войди как автор, чтобы сохранить рецепт'); return; }
   const recipe = buildVirtualRecipe(store.cakeDraft);
