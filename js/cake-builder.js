@@ -1584,7 +1584,11 @@ function drawStoryCard(ctx, C, W, H, model, img){
   ctx.font = '700 30px Inter, sans-serif';
   ctx.fillStyle = C.accentDark;
   ctx.fillText(`📏 ≈${model.portions} порций  ·  🧱 ${model.layerCount} коржей${model.occasion ? '  ·  🎉 '+model.occasion : ''}`, W/2, y);
-  y += 46;
+  y += 42;
+  ctx.font = '400 24px Inter, sans-serif';
+  ctx.fillStyle = C.inkSoft;
+  ctx.fillText(`💰 ≈${model.cost} ₽  ·  🔥 ≈${model.kcal} ккал/порция`, W/2, y);
+  y += 44;
 
   ctx.textAlign = 'left';
   ctx.font = '400 26px Inter, sans-serif';
