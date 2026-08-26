@@ -1288,6 +1288,9 @@ function tcComponentHtml(cls, badge, head, ingredients, sub, cost){
 export function renderTechCard(draft){
   const description = (draft.description && draft.description.trim()) || generateCakeDescription(draft);
   const breakdown = computeCakeIngredientsBreakdown(draft);
+  const costBreakdown = estimateCakeCostBreakdown(draft);
+  const nutrition = estimateCakeNutrition(draft);
+  const allergens = detectCakeAllergens(draft);
   const coat = draft.coatSame ? findCream(draft.creams[draft.creams.length-1]||'cheese') : findCoat(draft.coat);
   const decorLabel = asDecorArray(draft.decor).map(id=>findDecor(id).label.toLowerCase()).join(', ');
 
@@ -1302,17 +1305,19 @@ export function renderTechCard(draft){
     return tcComponentHtml('tc-component-dough', l.index+1,
       `${escapeHtml(l.kind.label)} — ${escapeHtml(l.variant.label)}`,
       [],
-      `Ø${l.diameter} см · ${l.syrupLabel ? 'пропитка: '+escapeHtml(l.syrupLabel) : 'без пропитки'} · ${escapeHtml(topNote)}`);
+      `Ø${l.diameter} см · ${l.syrupLabel ? 'пропитка: '+escapeHtml(l.syrupLabel) : 'без пропитки'} · ${escapeHtml(topNote)}`,
+      costBreakdown.layers[l.index]?.cost);
   }).join('');
 
-  const creamBlocks = breakdown.creamGroups.map(c=> tcComponentHtml('tc-component-cream', '🥄',
+  const creamBlocks = breakdown.creamGroups.map((c,i)=> tcComponentHtml('tc-component-cream', '🥄',
     `Крем «${escapeHtml(c.label)}»`,
     c.ingredients,
-    `На стыки ${escapeHtml(c.gapsText)} — один замес на все сразу`)).join('');
+    `На стыки ${escapeHtml(c.gapsText)} — один замес на все сразу`,
+    costBreakdown.creamGroups[i]?.cost)).join('');
 
   const extraBlocks = [
-    breakdown.coat ? tcComponentHtml('tc-component-extra', '🧁', `Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}`, breakdown.coat.ingredients) : '',
-    breakdown.decor ? tcComponentHtml('tc-component-extra', '✨', `Декор: ${escapeHtml(breakdown.decor.label)}`, breakdown.decor.ingredients) : ''
+    breakdown.coat ? tcComponentHtml('tc-component-extra', '🧁', `Внешнее покрытие: ${escapeHtml(breakdown.coat.label)}`, breakdown.coat.ingredients, '', costBreakdown.coat?.cost) : '',
+    breakdown.decor ? tcComponentHtml('tc-component-extra', '✨', `Декор: ${escapeHtml(breakdown.decor.label)}`, breakdown.decor.ingredients, '', costBreakdown.decor?.cost) : ''
   ].join('');
 
   const today = new Date().toLocaleDateString('ru-RU', { day:'2-digit', month:'long', year:'numeric' });
