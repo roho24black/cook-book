@@ -1735,10 +1735,11 @@ async function shareShoppingCard(draft, opts){
 // ---------- лист выбора стиля/формата картинки (по образцу карточки тренировки в GYM Log) ----------
 // Живая галерея: каждый из 3 стилей рендерится по-настоящему (не иконка-заглушка), чтобы
 // решение принималось по факту увиденного, а не по названию цвета.
-let cardOptsDraft = null, cardStyleKey = 'warm', cardFormatKey = 'landscape';
-function openCardOptsSheet(draft){
-  cardOptsDraft = draft; cardStyleKey = 'warm'; cardFormatKey = 'landscape';
+let cardOptsDraft = null, cardStyleKey = 'warm', cardFormatKey = 'landscape', cardOptsMode = 'tech';
+function openCardOptsSheet(draft, mode){
+  cardOptsDraft = draft; cardStyleKey = 'warm'; cardFormatKey = 'landscape'; cardOptsMode = mode || 'tech';
   document.getElementById('cakeCardOptsOverlay').classList.add('open');
+  document.querySelector('#cakeCardOptsOverlay .form-title').textContent = cardOptsMode==='shopping' ? '🛒 Список покупок картинкой' : '🖼️ Карточка для «Поделиться»';
   renderCardOptsFormat();
   renderCardOptsGallery();
 }
@@ -1761,8 +1762,9 @@ function renderCardOptsGallery(){
       <div class="cs-gallery-thumb${s.key===cardStyleKey?' active':''}" id="cs-thumb-${s.key}" style="background:${s.bg}; aspect-ratio:${aspect};">…</div>
       <div class="cs-gallery-label${s.key===cardStyleKey?' active':''}">${escapeHtml(s.label)}</div>
     </div>`).join('');
+  const renderFn = cardOptsMode==='shopping' ? renderShoppingCanvas : renderTechCardCanvas;
   CARD_STYLES.forEach(s=>{
-    renderTechCardCanvas(cardOptsDraft, { style:s.key, format:format.key }).then(canvas=>{
+    renderFn(cardOptsDraft, { style:s.key, format:format.key }).then(canvas=>{
       const el = document.getElementById(`cs-thumb-${s.key}`);
       if(!el) return;
       el.style.background = 'none';
