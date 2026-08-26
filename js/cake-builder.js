@@ -341,7 +341,25 @@ function renderCakeBuilder(){
   document.getElementById('cakeBuyPreview').textContent = ingredients.slice(0,4).map(i=>i.name.toLowerCase()).join(', ') + (ingredients.length>4 ? ` и ещё ${ingredients.length-4}` : '');
 
   const costEl = document.getElementById('cakeCostEstimate');
-  if(costEl) costEl.innerHTML = `💰 Ориентировочно продукты: <b>≈${estimateCakeCost(d)} ₽</b> <span style="opacity:.7;">(прикидка по средним ценам, не смета)</span>`;
+  if(costEl){
+    const nutrition = estimateCakeNutrition(d);
+    const allergens = detectCakeAllergens(d);
+    costEl.innerHTML = `
+      💰 Ориентировочно продукты: <b>≈${estimateCakeCost(d)} ₽</b> <span style="opacity:.7;">(прикидка, не смета)</span>
+      <button type="button" class="shop-link-btn" id="cakePriceSettingsBtn" style="margin-left:6px; font-size:11px;">✏️ свои цены</button>
+      <br>🔥 ≈${nutrition.perPortion.kcal} ккал/порция <span style="opacity:.7;">(Б${nutrition.perPortion.p} Ж${nutrition.perPortion.f} У${nutrition.perPortion.c})</span>
+      ${allergens.length ? `<br>⚠️ Содержит: ${allergens.map(a=>a.emoji+' '+a.label.toLowerCase()).join(', ')}` : ''}`;
+    document.getElementById('cakePriceSettingsBtn')?.addEventListener('click', openPriceSettingsSheet);
+  }
+
+  const prepWrap = document.getElementById('cakePrepSchedule');
+  if(prepWrap){
+    prepWrap.innerHTML = buildPrepSchedule(d).map(g=> `
+      <div class="cake-prep-day">
+        <div class="cake-prep-day-title">${escapeHtml(g.dateLabel)} — ${escapeHtml(g.title)}</div>
+        <ul>${g.tasks.map(t=> `<li>${escapeHtml(t)}</li>`).join('')}</ul>
+      </div>`).join('');
+  }
 
   renderCakePhotoGallery();
 }
