@@ -49,4 +49,6 @@ export const store = {
   // конструктор торта
   cakes: [],
   cakeDraft: null, // текущий собираемый/редактируемый торт, см. cake-builder.js
+  cakesSearchQuery: '',
+  customCakePresets: [], // пресеты, сохранённые пользователем — meta/status.customCakePresets
 };
