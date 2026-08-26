@@ -398,6 +398,14 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
   }
   else if(role==='coat') update(dr=>{ dr.coat = value; dr.coatSame = false; });
   else if(role==='reveal-coat-picker') update(dr=> dr.coatSame = false);
+  else if(role==='scale-cake'){
+    const factor = 1 + parseInt(value)/100;
+    update(dr=> dr.layers.forEach(l=>{
+      const target = l.diameter*factor;
+      l.diameter = CAKE_DIAMETERS.reduce((a,b)=> Math.abs(b-target)<Math.abs(a-target) ? b : a);
+    }));
+    showToast(`Масштаб ${value>0?'+':''}${value}% — диаметр каждого коржа пересчитан по отдельности`);
+  }
   else if(role==='decor') update(dr=>{
     if(value==='none'){ dr.decor = []; return; }
     const arr = asDecorArray(dr.decor).filter(v=>v!=='none');
