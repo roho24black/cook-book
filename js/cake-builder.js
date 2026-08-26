@@ -1338,9 +1338,12 @@ export function renderTechCard(draft){
           <div class="detail-meta-row">
             <div class="meta-pill">📏 ${escapeHtml(estimatePortions(draft))} порций</div>
             <div class="meta-pill">🧱 ${draft.layers.length} коржей</div>
+            <div class="meta-pill">💰 ≈${costBreakdown.total} ₽</div>
+            <div class="meta-pill">🔥 ≈${nutrition.perPortion.kcal} ккал/порция</div>
             ${draft.occasion ? `<div class="meta-pill">🎉 ${escapeHtml(draft.occasion)}</div>` : ''}
           </div>
           <p class="ref-note">Снаружи: ${escapeHtml(coat.label)}${decorLabel ? ' · декор: '+escapeHtml(decorLabel) : ''}</p>
+          ${allergens.length ? `<p class="ref-note">⚠️ Содержит: ${allergens.map(a=>a.emoji+' '+escapeHtml(a.label.toLowerCase())).join(', ')}</p>` : ''}
           ${stabilityWarning(draft) ? `<div class="cake-stability-tip" style="margin-top:12px;">⚠️ ${escapeHtml(stabilityWarning(draft))}</div>` : ''}
         </div>
         <div class="tc-col-right">
