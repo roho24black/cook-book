@@ -2,7 +2,7 @@
 // и запускает само приложение: статус синхронизации, service worker, авторизация, подписка на рецепты.
 
 import { store } from './store.js';
-import { isConfigured, auth, recipesCol, cakesCol } from './firebase-init.js';
+import { isConfigured, auth, db, recipesCol, cakesCol } from './firebase-init.js';
 import { seedIfNeeded, seedMissingCakeComponents } from './seed.js';
 import { render, loadingLabel } from './render-list.js';
 import { openFromHashIfPresent } from './detail.js';
