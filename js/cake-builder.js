@@ -1528,10 +1528,14 @@ function drawLandscapeCard(ctx, C, W, H, model, img){
   ctx.fillStyle = C.accentDark;
   ctx.fillText(`📏 ≈${model.portions} порций  ·  🧱 ${model.layerCount} коржей`, M, ly);
   ly += 46;
+  ctx.fillText(`💰 ≈${model.cost} ₽  ·  🔥 ≈${model.kcal} ккал/порция`, M, ly); ly += 46;
   if(model.occasion){ ctx.fillText(`🎉 ${model.occasion}`, M, ly); ly += 46; }
   ctx.font = '400 26px Inter, sans-serif';
   ctx.fillStyle = C.inkSoft;
   tcWrapText(ctx, model.outer, leftW).forEach(line=>{ ctx.fillText(line, M, ly); ly += 36; });
+  if(model.allergensText){
+    tcWrapText(ctx, '⚠️ '+model.allergensText, leftW).forEach(line=>{ ctx.fillText(line, M, ly); ly += 36; });
+  }
   if(model.warn){
     ly += 18;
     ctx.font = '600 24px Inter, sans-serif';
