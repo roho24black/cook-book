@@ -1921,15 +1921,24 @@ document.getElementById('cakeTechCardShareBtn')?.addEventListener('click', ()=> 
 document.getElementById('cakeBuyShareBtn')?.addEventListener('click', ()=> openCardOptsSheet(store.cakeDraft, 'shopping'));
 
 // ---------- лист "свои цены" ----------
+// Штучные ингредиенты (яйца/желток/белок — как и "fixed"-правила вроде ванили/лимона)
+// хранят rate как "₽ за штуку" напрямую, без домножения на 1000 — в отличие от весовых
+// ингредиентов, где rate — это "₽ за грамм", и в форме показывается как "₽ за кг/л".
+function isPerItemRule(r){ return r.fixed!==undefined || r.gramsPerUnit!==undefined; }
 function openPriceSettingsSheet(){
   const overrides = loadPriceOverrides();
   const list = document.getElementById('priceSettingsList');
-  list.innerHTML = INGREDIENT_RULES.map(r=> `
+  list.innerHTML = INGREDIENT_RULES.map(r=>{
+    const perItem = isPerItemRule(r);
+    const base = r.fixed!==undefined ? r.fixed : r.rate;
+    const display = perItem ? base : base*1000;
+    return `
     <div class="price-row">
       <span class="price-row-label">${escapeHtml(r.label)}</span>
-      <span class="price-row-unit">${r.fixed!==undefined ? '₽ за шт' : '₽ за кг/л'}</span>
-      <input type="number" min="0" step="0.01" inputmode="decimal" data-id="${r.id}" placeholder="${r.fixed!==undefined ? r.fixed : r.rate*1000}" value="${overrides[r.id]!==undefined ? (r.fixed!==undefined ? overrides[r.id] : overrides[r.id]*1000) : ''}">
-    </div>`).join('');
+      <span class="price-row-unit">${perItem ? '₽ за шт' : '₽ за кг/л'}</span>
+      <input type="number" min="0" step="0.01" inputmode="decimal" data-id="${r.id}" placeholder="${display}" value="${overrides[r.id]!==undefined ? (perItem ? overrides[r.id] : overrides[r.id]*1000) : ''}">
+    </div>`;
+  }).join('');
   document.getElementById('cakePriceSettingsOverlay').classList.add('open');
 }
 document.getElementById('priceSettingsCloseBtn')?.addEventListener('click', ()=> document.getElementById('cakePriceSettingsOverlay').classList.remove('open'));
