@@ -71,6 +71,14 @@ if (isConfigured) {
       store.cakes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       renderCakesList();
     }, (err) => console.error(err));
+
+    // Свои пресеты конструктора торта — храним прямо в meta/status (уже открыт на
+    // чтение/запись для любого авторизованного, см. FIRESTORE_RULES.txt), отдельная
+    // коллекция под них не нужна. Конструктор перечитывает store.customCakePresets при
+    // каждом своём рендере, отдельный форс-рендер отсюда не нужен.
+    onSnapshot(doc(db, 'meta', 'status'), (snap) => {
+      store.customCakePresets = (snap.exists() && snap.data().customCakePresets) || [];
+    }, (err) => console.error(err));
   });
 } else {
   loadingLabel.textContent = 'настрой Firebase';
