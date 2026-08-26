@@ -444,13 +444,22 @@ document.getElementById('cakeBuilderOverlay').addEventListener('click', (e)=>{
     if(collapsedLayers.has(idx) !== collapsedLayers.has(j)) collapsedLayers.clear();
   });
   else if(role==='preset') update(dr=>{
-    const preset = CAKE_PRESETS.find(p=>p.id===value);
+    const preset = CAKE_PRESETS.find(p=>p.id===value) || (store.customCakePresets||[]).find(p=>p.id===value);
     if(!preset) return;
     dr.layers = JSON.parse(JSON.stringify(preset.layers));
     dr.creams = JSON.parse(JSON.stringify(preset.creams));
     dr.coatSame = preset.coatSame; dr.coat = preset.coat; dr.decor = asDecorArray(preset.decor);
     collapsedLayers.clear();
   });
+  else if(role==='delete-custom-preset'){
+    (async ()=>{
+      const ok = await showConfirm('Удалить этот пресет? Уже собранные с ним торты не пострадают.');
+      if(!ok) return;
+      const remaining = (store.customCakePresets||[]).filter(p=>p.id!==value);
+      try{ await setDoc(doc(db,'meta','status'), { customCakePresets: remaining }, { merge:true }); showToast('Пресет удалён'); }
+      catch(e){ showToast('Не получилось удалить — попробуй ещё раз'); }
+    })();
+  }
 });
 
 document.getElementById('cakeAddLayerBtn').addEventListener('click', ()=> update(dr=>{
